@@ -9,7 +9,7 @@ class Temoignage extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['id_media', 'auteur', 'contenu', 'insert_by', 'update_by', 'is_deleted'];
+    protected $fillable = ['id_media', 'nom', 'description', 'insert_by', 'update_by', 'is_deleted'];
 
     // Relations
     public function media()

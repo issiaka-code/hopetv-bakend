@@ -1,9 +1,12 @@
+@php
+    $parametre = App\Models\Parametre::first();
+@endphp
 <div class="main-sidebar sidebar-style-2">
     <aside id="sidebar-wrapper">
         <div class="sidebar-brand">
             <a href="{{ route('dashboard') }}">
-                <img src="{{ asset('img/logo.png') }}" class="header-logo" />
-                <span class="logo-name">{{ config('app.name') }}</span>
+                <img src="{{ asset('storage/' . $parametre->logo) }}" alt="{{ config('app.name') }}" class="header-logo rounded" />
+                <span class="logo-name"> <small>{{  $parametre->nom_site }} </small> </span>
             </a>
         </div>
 
@@ -62,12 +65,6 @@
             <li class="{{ Route::is('liens-utiles.*') ? 'active' : '' }}">
                 <a href="{{ route('liens-utiles.index') }}" class="nav-link">
                     <i data-feather="link"></i><span>Liens utiles</span>
-                </a>
-            </li>
-
-            <li class="{{ Route::is('users.*') ? 'active' : '' }}">
-                <a href="{{ route('users.index') }}" class="nav-link">
-                    <i data-feather="users"></i><span>Utilisateurs</span>
                 </a>
             </li>
         </ul>

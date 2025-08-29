@@ -8,14 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class InfoBulle extends Model
 {
     use HasFactory;
+    protected $table = 'info_bulles';
+    
+    protected $fillable = ['titre', 'texte', 'is_active', 'insert_by', 'update_by', 'is_deleted'];
 
-    protected $fillable = ['id_video', 'titre', 'texte', 'is_active', 'heure_apparition', 'insert_by', 'update_by', 'is_deleted'];
-
-    // Relations
-    public function video()
-    {
-        return $this->belongsTo(Video::class, 'id_video');
-    }
 
     public function insertedBy()
     {

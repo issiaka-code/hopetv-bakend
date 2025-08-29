@@ -1,28 +1,28 @@
-<div class="modal fade" id="addPodcastModal" tabindex="-1" role="dialog" aria-labelledby="addPodcastModalLabel"
+<div class="modal fade" id="addTemoignageModal" tabindex="-1" role="dialog" aria-labelledby="addTemoignageModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-static" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="addPodcastModalLabel">Ajouter un podcast</h5>
+                    <h5 class="modal-title" id="addTemoignageModalLabel">Ajouter un témoignage</h5>
                     <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form id="addPodcastForm" method="POST" action="{{ route('podcasts.store') }}" enctype="multipart/form-data">
+                <form id="addTemoignageForm" method="POST" action="{{ route('temoignages.store') }}" enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body">
                         <div class="form-group">
-                            <label class="font-weight-bold">Titre <span class="text-danger">*</span></label>
-                            <input type="text" name="titre" id="addPodcastTitre"
-                                class="form-control @error('titre') is-invalid @enderror" required>
-                            @error('titre')
+                            <label class="font-weight-bold">Nom <span class="text-danger">*</span></label>
+                            <input type="text" name="nom" id="addTemoignageNom"
+                                class="form-control @error('nom') is-invalid @enderror" required>
+                            @error('nom')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="form-group">
                             <label class="font-weight-bold">Description <span class="text-danger">*</span></label>
-                            <textarea name="description" id="addPodcastDescription" class="form-control @error('description') is-invalid @enderror"
+                            <textarea name="description" id="addTemoignageDescription" class="form-control @error('description') is-invalid @enderror"
                                 rows="3" required></textarea>
                             @error('description')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -44,6 +44,10 @@
                                 <label class="btn btn-outline-primary" id="addMediaTypeVideoLinkLabel">
                                     <input type="radio" name="media_type" id="addMediaTypeVideoLink" value="video_link" autocomplete="off">
                                     <i class="fas fa-link mr-1"></i> Lien vidéo
+                                </label>
+                                <label class="btn btn-outline-primary" id="addMediaTypePdfLabel">
+                                    <input type="radio" name="media_type" id="addMediaTypePdf" value="pdf" autocomplete="off">
+                                    <i class="fas fa-file-pdf mr-1"></i> PDF
                                 </label>
                             </div>
                         </div>
@@ -93,6 +97,23 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                                 <small class="form-text text-muted">Collez le lien complet de la vidéo (YouTube, Vimeo, etc.)</small>
+                            </div>
+                        </div>
+
+                        <!-- Section Fichier PDF -->
+                        <div id="addPdfFileSection" class="d-none">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Fichier PDF <span class="text-danger">*</span></label>
+                                <div class="custom-file">
+                                    <input type="file" name="fichier_pdf" id="addPdfFile"
+                                        class="custom-file-input @error('fichier_pdf') is-invalid @enderror"
+                                        accept=".pdf" required>
+                                    <label class="custom-file-label" for="addPdfFile">Choisir un fichier PDF</label>
+                                    @error('fichier_pdf')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <small class="form-text text-muted">Format accepté: PDF (max 20MB)</small>
                             </div>
                         </div>
                     </div>

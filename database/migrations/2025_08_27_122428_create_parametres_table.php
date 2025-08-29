@@ -10,9 +10,9 @@ return new class extends Migration
     {
         Schema::create('parametres', function (Blueprint $table) {
             $table->id();
-            $table->string('logo');
-            $table->string('nom_site');
-            $table->string('telephone');
+            $table->string('logo')->nullable();
+            $table->string('nom_site')->nullable();
+            $table->string('telephone')->nullable();
             $table->foreignId('insert_by')->constrained('users');
             $table->foreignId('update_by')->constrained('users');
             $table->boolean('is_deleted')->default(false);

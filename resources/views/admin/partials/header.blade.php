@@ -17,14 +17,14 @@
                     src="img/user.png" class="user-img-radious-style"> <span
                     class="d-sm-none d-lg-inline-block"></span></a>
             <div class="dropdown-menu dropdown-menu-right pullDown">
-                <div class="dropdown-title">Hello {{ Auth::user()->name }}</div>
+                <div class="dropdown-title">Hello {{ Auth::user()->name  }}</div>
                 <div class="dropdown-divider"></div>
                 <form action="{{ route('logout') }}" method="post">
                     @csrf
                     <button class="dropdown-item has-icon text-danger"> <i class="fas fa-sign-out-alt"><span class="mx-2">Logout</span></i></button>
                 </form>
-
             </div>
         </li>
     </ul>
 </nav>
+

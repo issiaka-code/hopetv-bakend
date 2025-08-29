@@ -44,27 +44,32 @@ class PodcastController extends Controller
 
         // Préparer chaque variable pour la vue et JS
         $podcastsData = $podcasts->map(function ($podcast) {
-            $isAudio = $podcast->media && $podcast->media->type === 'audio';
-            $isVideoLink = $podcast->media && $podcast->media->type === 'link';
-            $isVideoFile = $podcast->media && $podcast->media->type === 'video';
-
+            $mediaType = '';
             $thumbnailUrl = null;
 
-            if ($isVideoLink) {
-                $rawUrl = $podcast->media->url_fichier;
+            if ($podcast->media) {
+                if ($podcast->media->type === 'audio') {
+                    $mediaType = 'audio';
+                    $thumbnailUrl = asset('storage/' . $podcast->media->url_fichier);
+                } elseif ($podcast->media->type === 'video') {
+                    $mediaType = 'video_file';
+                    $thumbnailUrl = asset('storage/' . $podcast->media->url_fichier);
+                } elseif ($podcast->media->type === 'link') {
+                    $mediaType = 'video_link';
+                    $rawUrl = $podcast->media->url_fichier;
 
-                if (Str::contains($rawUrl, 'youtube.com/watch?v=')) {
-                    $videoId = explode('v=', parse_url($rawUrl, PHP_URL_QUERY))[1] ?? null;
-                    $videoId = explode('&', $videoId)[0];
-                    $thumbnailUrl = $videoId ? "https://www.youtube.com/embed/$videoId" : $rawUrl;
-                } elseif (Str::contains($rawUrl, 'youtu.be/')) {
-                    $videoId = basename(parse_url($rawUrl, PHP_URL_PATH));
-                    $thumbnailUrl = "https://www.youtube.com/embed/$videoId";
-                } else {
-                    $thumbnailUrl = $rawUrl;
+                    // Conversion des URLs YouTube
+                    if (str_contains($rawUrl, 'youtube.com/watch?v=')) {
+                        $videoId = explode('v=', parse_url($rawUrl, PHP_URL_QUERY))[1] ?? null;
+                        $videoId = $videoId ? explode('&', $videoId)[0] : null;
+                        $thumbnailUrl = $videoId ? "https://www.youtube.com/embed/$videoId" : $rawUrl;
+                    } elseif (str_contains($rawUrl, 'youtu.be/')) {
+                        $videoId = basename(parse_url($rawUrl, PHP_URL_PATH));
+                        $thumbnailUrl = "https://www.youtube.com/embed/$videoId";
+                    } else {
+                        $thumbnailUrl = $rawUrl;
+                    }
                 }
-            } elseif ($isVideoFile || $isAudio) {
-                $thumbnailUrl = asset('storage/' . $podcast->media->url_fichier);
             }
 
             return (object)[
@@ -72,17 +77,17 @@ class PodcastController extends Controller
                 'titre' => $podcast->titre,
                 'description' => $podcast->description,
                 'created_at' => $podcast->created_at,
-                'media_type' => $isAudio ? 'audio' : ($isVideoLink ? 'video_link' : 'video_file'),
+                'media_type' => $mediaType,
                 'thumbnail_url' => $thumbnailUrl,
             ];
         });
 
-        // Envoyer chaque podcast comme variable séparée
         return view('admin.medias.podcasts.index', [
             'podcasts' => $podcasts,
             'podcastsData' => $podcastsData,
         ]);
     }
+
 
 
     public function store(Request $request)

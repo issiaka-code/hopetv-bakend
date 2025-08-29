@@ -1,10 +1,9 @@
 @extends('admin.master')
 
-@section('title', 'Gestion des Podcasts')
+@section('title', 'Gestion des Témoignages')
 
 @push('styles')
     <style>
-        /* Styles CSS identiques à ceux des témoignages mais adaptés pour podcasts */
         .btn-group-toggle .btn {
             border-radius: 5px;
         }
@@ -17,7 +16,8 @@
 
         #audioFileSection,
         #videoFileSection,
-        #videoLinkSection {
+        #videoLinkSection,
+        #pdfFileSection {
             transition: opacity 0.3s ease;
         }
 
@@ -27,7 +27,7 @@
             margin-bottom: 0;
         }
 
-        .podcast-card {
+        .temoignage-card {
             border-radius: 10px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
             border: none;
@@ -36,12 +36,12 @@
             height: 100%;
         }
 
-        .podcast-card:hover {
+        .temoignage-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         }
 
-        .podcast-thumbnail-container {
+        .temoignage-thumbnail-container {
             overflow: hidden;
             height: 180px;
             position: relative;
@@ -51,22 +51,23 @@
             justify-content: center;
         }
 
-        .podcast-thumbnail {
+        .temoignage-thumbnail {
             cursor: pointer;
             height: 100%;
             width: 100%;
         }
 
-        .podcast-thumbnail video,
-        .podcast-thumbnail img,
-        .podcast-thumbnail iframe {
+        .temoignage-thumbnail video,
+        .temoignage-thumbnail img,
+        .temoignage-thumbnail iframe {
             object-fit: cover;
             height: 100%;
             width: 100%;
             transition: transform 0.3s;
         }
 
-        .audio-thumbnail {
+        .audio-thumbnail,
+        .pdf-thumbnail {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -75,8 +76,12 @@
             color: #4e73df;
         }
 
-        .podcast-card:hover .podcast-thumbnail video,
-        .podcast-card:hover .podcast-thumbnail img {
+        .pdf-thumbnail {
+            color: #e74a3b;
+        }
+
+        .temoignage-card:hover .temoignage-thumbnail video,
+        .temoignage-card:hover .temoignage-thumbnail img {
             transform: scale(1.05);
         }
 
@@ -100,11 +105,11 @@
             color: white;
         }
 
-        .podcast-thumbnail:hover .thumbnail-overlay {
+        .temoignage-thumbnail:hover .thumbnail-overlay {
             opacity: 1;
         }
 
-        .podcast-card .card-title {
+        .temoignage-card .card-title {
             font-size: 1.1rem;
             margin-bottom: 0.5rem;
             white-space: nowrap;
@@ -112,7 +117,7 @@
             text-overflow: ellipsis;
         }
 
-        .podcast-card .card-text {
+        .temoignage-card .card-text {
             height: 40px;
             overflow: hidden;
             margin-bottom: 1rem;
@@ -129,13 +134,13 @@
         }
 
         /* Styles pour la grille responsive */
-        #podcasts-grid {
+        #temoignages-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 1.5rem;
         }
 
-        .podcast-grid-item {
+        .temoignage-grid-item {
             width: 100%;
         }
 
@@ -152,31 +157,31 @@
             z-index: 10;
         }
 
-        /* Responsive improvements - mêmes que témoignages */
+        /* Responsive improvements */
         @media (max-width: 1400px) {
-            #podcasts-grid {
+            #temoignages-grid {
                 grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             }
         }
 
         @media (max-width: 1200px) {
-            #podcasts-grid {
+            #temoignages-grid {
                 grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
                 gap: 1.25rem;
             }
 
-            .podcast-thumbnail-container {
+            .temoignage-thumbnail-container {
                 height: 160px;
             }
         }
 
         @media (max-width: 992px) {
-            #podcasts-grid {
+            #temoignages-grid {
                 grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
                 gap: 1rem;
             }
 
-            .podcast-thumbnail-container {
+            .temoignage-thumbnail-container {
                 height: 140px;
             }
 
@@ -190,12 +195,12 @@
         }
 
         @media (max-width: 768px) {
-            #podcasts-grid {
+            #temoignages-grid {
                 grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
                 gap: 0.875rem;
             }
 
-            .podcast-thumbnail-container {
+            .temoignage-thumbnail-container {
                 height: 120px;
             }
 
@@ -210,14 +215,14 @@
         }
 
         @media (max-width: 576px) {
-            #podcasts-grid {
+            #temoignages-grid {
                 grid-template-columns: 1fr;
                 gap: 1rem;
                 max-width: 400px;
                 margin: 0 auto;
             }
 
-            .podcast-thumbnail-container {
+            .temoignage-thumbnail-container {
                 height: 180px;
             }
 
@@ -249,7 +254,7 @@
         }
 
         @media (max-width: 400px) {
-            .podcast-thumbnail-container {
+            .temoignage-thumbnail-container {
                 height: 150px;
             }
 
@@ -271,7 +276,7 @@
 
         /* Touch device improvements */
         @media (hover: none) {
-            .podcast-card:hover {
+            .temoignage-card:hover {
                 transform: none;
                 box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
             }
@@ -315,21 +320,21 @@
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="d-flex justify-content-between align-items-center section-header">
-                        <h2 class="section-title">Podcasts disponibles</h2>
-                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addPodcastModal">
-                            <i class="fas fa-plus"></i> Ajouter un podcast
+                        <h2 class="section-title">Témoignages disponibles</h2>
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addTemoignageModal">
+                            <i class="fas fa-plus"></i> Ajouter un témoignage
                         </button>
                     </div>
                 </div>
             </div>
 
             <div class="row mb-4">
-                <form method="GET" action="{{ route('podcasts.index') }}" class="w-100">
+                <form method="GET" action="{{ route('temoignages.index') }}" class="w-100">
                     <div class="row g-2 d-flex flex-row justify-content-end align-items-center">
                         <!-- Champ recherche -->
                         <div class="col-3">
                             <input type="text" name="search" value="{{ request('search') }}" class="form-control"
-                                placeholder="Rechercher un podcast...">
+                                placeholder="Rechercher un témoignage...">
                         </div>
 
                         <!-- Filtre par type -->
@@ -339,6 +344,7 @@
                                 <option value="audio" {{ request('type') === 'audio' ? 'selected' : '' }}>Audio</option>
                                 <option value="video_file" {{ request('type') === 'video_file' ? 'selected' : '' }}>Fichiers vidéo</option>
                                 <option value="video_link" {{ request('type') === 'video_link' ? 'selected' : '' }}>Liens vidéo</option>
+                                <option value="pdf" {{ request('type') === 'pdf' ? 'selected' : '' }}>PDF</option>
                             </select>
                         </div>
                         <!-- Bouton recherche -->
@@ -347,8 +353,8 @@
                                 <i class="fas fa-filter py-2"></i> Filtrer
                             </button>
                         </div>
-                        <div class="col-2">
-                            <a href="{{ route('podcasts.index') }}" class="btn btn-secondary w-100">
+                         <div class="col-md-2 my-1">
+                            <a href="{{ route('temoignages.index') }}" class="btn btn-outline-secondary w-100">
                                 <i class="fas fa-sync py-2"></i> Réinitialiser
                             </a>
                         </div>
@@ -356,33 +362,35 @@
                 </form>
             </div>
 
-            <!-- Grille de podcasts -->
+            <!-- Grille de témoignages -->
             <div class="row">
                 <div class="col-12">
-                    <div id="podcasts-grid">
-                        @forelse($podcastsData as $podcast)
-                            <div class="podcast-grid-item">
-                                <div class="card podcast-card">
-                                    <div class="podcast-thumbnail-container">
-                                        <div class="podcast-thumbnail position-relative"
-                                            data-podcast-url="{{ $podcast->thumbnail_url }}" 
-                                            data-podcast-name="{{ $podcast->titre }}"
-                                            data-media-type="{{ $podcast->media_type }}">
+                    <div id="temoignages-grid">
+                        @forelse($temoignagesData as $temoignage)
+                            @php
+                                $id = $temoignage->id;
+                                $nom = $temoignage->nom;
+                                $description = $temoignage->description;
+                                $created_at = $temoignage->created_at;
+                                $media_type = $temoignage->media_type;
+                                $thumbnail_url = $temoignage->thumbnail_url;
+                            @endphp
 
-                                            @if ($podcast->media_type === 'audio')
-                                                <div class="audio-thumbnail">
-                                                    <i class="fas fa-music"></i>
-                                                </div>
-                                            @elseif ($podcast->media_type === 'video_link')
-                                                <iframe src="{{ $podcast->thumbnail_url }}" frameborder="0" 
-                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                                    allowfullscreen>
-                                                </iframe>
-                                            @elseif ($podcast->media_type === 'video_file')
-                                                <!-- Pour les vidéos locales, utiliser une prévisualisation -->
-                                                <video  src="{{ $podcast->thumbnail_url }}" controls style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f8f9fa;">
-                                                    <i class="fas fa-video" style="font-size: 3rem; color: #4e73df;"></i>
-                                                </video>
+                            <div class="temoignage-grid-item">
+                                <div class="card temoignage-card">
+                                    <div class="temoignage-thumbnail-container">
+                                        <div class="temoignage-thumbnail position-relative"
+                                            data-temoignage-url="{{ $thumbnail_url }}" data-temoignage-name="{{ $nom }}"
+                                            data-media-type="{{ $media_type }}">
+
+                                            @if ($media_type === 'audio')
+                                                <div class="audio-thumbnail"><i class="fas fa-music"></i></div>
+                                            @elseif ($media_type === 'video_link')
+                                                <iframe src="{{ $thumbnail_url }}" frameborder="0" allowfullscreen></iframe>
+                                            @elseif ($media_type === 'pdf')
+                                                <div class="pdf-thumbnail"><i class="fas fa-file-pdf"></i></div>
+                                            @else
+                                                <video src="{{ $thumbnail_url }}"></video>
                                             @endif
 
                                             <div class="thumbnail-overlay">
@@ -390,49 +398,38 @@
                                             </div>
 
                                             <span class="badge badge-primary media-type-badge">
-                                                @if ($podcast->media_type === 'audio')
-                                                    Audio
-                                                @elseif ($podcast->media_type === 'video_link')
-                                                    Lien vidéo
-                                                @elseif ($podcast->media_type === 'video_file')
-                                                    Fichier vidéo
-                                                @endif
+                                                {{ ucfirst(str_replace('_', ' ', $media_type)) }}
                                             </span>
                                         </div>
                                     </div>
 
                                     <div class="card-body">
-                                        <h5 class="card-title" title="{{ $podcast->titre }}">
-                                            {{ Str::limit($podcast->titre, 25) }}
-                                        </h5>
-                                        <p class="card-text text-muted small" title="{{ $podcast->description }}">
-                                            {{ Str::limit($podcast->description, 30) }}
-                                        </p>
+                                        <h5 class="card-title" title="{{ $nom }}">{{ Str::limit($nom, 25) }}</h5>
+                                        <p class="card-text text-muted small" title="{{ $description }}">
+                                            {{ Str::limit($description, 30) }}</p>
 
                                         <div class="d-flex justify-content-between align-items-center flex-wrap">
-                                            <small class="text-muted mb-1">
-                                                {{ $podcast->created_at->format('d/m/Y') }}
-                                            </small>
+                                            <small class="text-muted mb-1">{{ $created_at->format('d/m/Y') }}</small>
 
                                             <div class="btn-group">
-                                                <button class="btn btn-sm btn-outline-info view-podcast-btn rounded"
-                                                    data-podcast-url="{{ $podcast->thumbnail_url }}"
-                                                    data-podcast-name="{{ $podcast->titre }}"
-                                                    data-title="{{ $podcast->titre }}"
-                                                    data-description="{{ $podcast->description }}"
-                                                    data-media-type="{{ $podcast->media_type }}">
+                                                <button class="btn btn-sm btn-outline-info view-temoignage-btn rounded"
+                                                    data-temoignage-url="{{ $thumbnail_url }}"
+                                                    data-temoignage-name="{{ $nom }}"
+                                                    data-title="{{ $nom }}"
+                                                    data-description="{{ $description }}"
+                                                    data-media-type="{{ $media_type }}">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
-                                                <button class="btn btn-sm btn-outline-primary edit-podcast-btn mx-1 rounded"
-                                                    data-podcast-id="{{ $podcast->id }}">
+                                                <button class="btn btn-sm btn-outline-primary edit-temoignage-btn mx-1 rounded"
+                                                    data-temoignage-id="{{ $id }}">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
-                                                <form action="{{ route('podcasts.destroy', $podcast->id) }}" method="POST"
+                                                <form action="{{ route('temoignages.destroy', $id) }}" method="POST"
                                                     class="d-inline delete-form">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn btn-sm btn-outline-danger rounded"
-                                                        onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce podcast ?')">
+                                                        onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce témoignage ?')">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
@@ -442,40 +439,40 @@
                                 </div>
                             </div>
                         @empty
-                            <div class="col-12 text-center py-5">
-                                <div class="empty-state">
-                                    <i class="fas fa-podcast fa-4x text-muted mb-3"></i>
-                                    <h4 class="text-muted">Aucun podcast disponible</h4>
-                                </div>
-                            </div>
-                        @endforelse
                     </div>
+                    <div class="col-12 text-center py-5">
+                        <div class="empty-state">
+                            <i class="fas fa-comments fa-4x text-muted mb-3"></i>
+                            <h4 class="text-muted">Aucun témoignage disponible</h4>
+                        </div>
+                    </div>
+                    @endforelse
                 </div>
             </div>
 
             <!-- Pagination si nécessaire -->
-            @if ($podcasts->hasPages())
+            @if ($temoignages->hasPages())
                 <div class="d-flex justify-content-center mt-4">
-                    {{ $podcasts->appends(request()->query())->links() }}
+                    {{ $temoignages->appends(request()->query())->links() }}
                 </div>
             @endif
         </div>
     </section>
 
     <!-- Modals -->
-    @include('admin.medias.podcasts.modals.add')
-    @include('admin.medias.podcasts.modals.edit')
-    @include('admin.medias.podcasts.modals.view')
+    @include('admin.medias.temoignages.modals.add')
+    @include('admin.medias.temoignages.modals.edit')
+    @include('admin.medias.temoignages.modals.view')
 @endsection
 
 @push('scripts')
     <script>
         $(document).ready(function() {
             // ===== GESTION DU FORMULAIRE D'AJOUT =====
-            $('input[name="media_type"]', '#addPodcastForm').change(function() {
+            $('input[name="media_type"]', '#addTemoignageForm').change(function() {
                 const selectedType = $(this).val();
-                $('#addAudioFileSection, #addVideoFileSection, #addVideoLinkSection').addClass('d-none');
-                $('#addAudioFile, #addVideoFile, #addVideoLink').removeAttr('required');
+                $('#addAudioFileSection, #addVideoFileSection, #addVideoLinkSection, #addPdfFileSection').addClass('d-none');
+                $('#addAudioFile, #addVideoFile, #addVideoLink, #addPdfFile').removeAttr('required');
 
                 if (selectedType === 'audio') {
                     $('#addAudioFileSection').removeClass('d-none');
@@ -486,25 +483,28 @@
                 } else if (selectedType === 'video_link') {
                     $('#addVideoLinkSection').removeClass('d-none');
                     $('#addVideoLink').attr('required', 'required');
+                } else if (selectedType === 'pdf') {
+                    $('#addPdfFileSection').removeClass('d-none');
+                    $('#addPdfFile').attr('required', 'required');
                 }
             });
 
-            $('#addAudioFile, #addVideoFile').on('change', function() {
+            $('#addAudioFile, #addVideoFile, #addPdfFile').on('change', function() {
                 let fileName = $(this).val().split('\\').pop();
                 $(this).next('.custom-file-label').addClass("selected").html(fileName);
             });
 
-            $('#addPodcastModal').on('hidden.bs.modal', function() {
-                $('#addPodcastForm')[0].reset();
-                $('#addAudioFile, #addVideoFile').next('.custom-file-label').html('Choisir un fichier');
+            $('#addTemoignageModal').on('hidden.bs.modal', function() {
+                $('#addTemoignageForm')[0].reset();
+                $('#addAudioFile, #addVideoFile, #addPdfFile').next('.custom-file-label').html('Choisir un fichier');
                 $('#addMediaTypeAudio').prop('checked', true).trigger('change');
             });
 
             // ===== GESTION DU FORMULAIRE D'ÉDITION =====
-            $('input[name="media_type"]', '#editPodcastForm').change(function() {
+            $('input[name="media_type"]', '#editTemoignageForm').change(function() {
                 const selectedType = $(this).val();
-                $('#editAudioFileSection, #editVideoFileSection, #editVideoLinkSection').addClass('d-none');
-                $('#editAudioFile, #editVideoFile, #editVideoLink').removeAttr('required');
+                $('#editAudioFileSection, #editVideoFileSection, #editVideoLinkSection, #editPdfFileSection').addClass('d-none');
+                $('#editAudioFile, #editVideoFile, #editVideoLink, #editPdfFile').removeAttr('required');
 
                 if (selectedType === 'audio') {
                     $('#editAudioFileSection').removeClass('d-none');
@@ -513,89 +513,111 @@
                 } else if (selectedType === 'video_link') {
                     $('#editVideoLinkSection').removeClass('d-none');
                     $('#editVideoLink').attr('required', 'required');
+                } else if (selectedType === 'pdf') {
+                    $('#editPdfFileSection').removeClass('d-none');
                 }
             });
 
-            $('#editAudioFile, #editVideoFile').on('change', function() {
+            $('#editAudioFile, #editVideoFile, #editPdfFile').on('change', function() {
                 let fileName = $(this).val().split('\\').pop();
                 $(this).next('.custom-file-label').addClass("selected").html(fileName ||
                     'Choisir un nouveau fichier');
             });
 
-            $(document).on('click', '.edit-podcast-btn', function() {
-                const podcastId = $(this).data('podcast-id');
+            $(document).on('click', '.edit-temoignage-btn', function() {
+                const temoignageId = $(this).data('temoignage-id');
                 $.ajax({
-                    url: "{{ route('podcasts.edit', ':id') }}".replace(':id', podcastId),
+                    url: "{{ route('temoignages.edit', ':id') }}".replace(':id', temoignageId),
                     method: 'GET',
                     success: function(data) {
-                        $('#editPodcastTitre').val(data.titre);
-                        $('#editPodcastDescription').val(data.description);
-                        $('#editPodcastForm').attr('action',
-                            "{{ route('podcasts.update', ':id') }}".replace(':id', podcastId));
+                        $('#editTemoignageNom').val(data.nom);
+                        $('#editTemoignageDescription').val(data.description);
+                        $('#editTemoignageForm').attr('action',
+                            "{{ route('temoignages.update', ':id') }}".replace(':id',
+                                temoignageId));
 
                         if (data.media) {
                             let mediaType = data.media.type;
                             if (mediaType === 'audio') {
-                                $('#editMediaTypeAudio').prop('checked', true).trigger('change');
-                                $('#editCurrentAudioName').text(data.media.url_fichier.split('/').pop());
+                                $('#editMediaTypeAudio').prop('checked', true).trigger(
+                                    'change');
+                                $('#editCurrentAudioName').text(data.media.url_fichier.split(
+                                    '/').pop());
                                 $('#editCurrentAudio').show();
-                                $('#editCurrentVideo, #editCurrentLink').hide();
+                                $('#editCurrentVideo, #editCurrentLink, #editCurrentPdf').hide();
                             } else if (mediaType === 'video') {
-                                $('#editMediaTypeVideoFile').prop('checked', true).trigger('change');
-                                $('#editCurrentVideoName').text(data.media.url_fichier.split('/').pop());
+                                $('#editMediaTypeVideoFile').prop('checked', true).trigger(
+                                    'change');
+                                $('#editCurrentVideoName').text(data.media.url_fichier.split(
+                                    '/').pop());
                                 $('#editCurrentVideo').show();
-                                $('#editCurrentAudio, #editCurrentLink').hide();
+                                $('#editCurrentAudio, #editCurrentLink, #editCurrentPdf').hide();
                             } else if (mediaType === 'link') {
-                                $('#editMediaTypeVideoLink').prop('checked', true).trigger('change');
+                                $('#editMediaTypeVideoLink').prop('checked', true).trigger(
+                                    'change');
                                 $('#editVideoLink').val(data.media.url_fichier);
                                 $('#editCurrentLinkValue').text(data.media.url_fichier);
                                 $('#editViewCurrentLink').attr('href', data.media.url_fichier);
                                 $('#editCurrentLink').show();
-                                $('#editCurrentAudio, #editCurrentVideo').hide();
+                                $('#editCurrentAudio, #editCurrentVideo, #editCurrentPdf').hide();
+                            } else if (mediaType === 'pdf') {
+                                $('#editMediaTypePdf').prop('checked', true).trigger(
+                                    'change');
+                                $('#editCurrentPdfName').text(data.media.url_fichier.split(
+                                    '/').pop());
+                                $('#editCurrentPdf').show();
+                                $('#editCurrentAudio, #editCurrentVideo, #editCurrentLink').hide();
                             }
                         }
-                        $('#editPodcastModal').modal('show');
+                        $('#editTemoignageModal').modal('show');
                     },
                     error: function() {
-                        alert('Erreur lors du chargement des données du podcast');
+                        alert('Erreur lors du chargement des données du témoignage');
                     }
                 });
             });
 
-            // ===== VISUALISATION DES PODCASTS =====
-            $(document).on('click', '.view-podcast-btn, .podcast-thumbnail', function() {
-                const podcastUrl = $(this).data('podcast-url');
-                const podcastName = $(this).data('podcast-name');
+            // ===== VISUALISATION DES TÉMOIGNAGES =====
+            $(document).on('click', '.view-temoignage-btn, .temoignage-thumbnail', function() {
+                const temoignageUrl = $(this).data('temoignage-url');
+                const temoignageName = $(this).data('temoignage-name');
                 const mediaType = $(this).data('media-type');
-                const podcastDescription = $(this).closest('.podcast-card').find('.card-text').attr('title') || '';
+                const temoignageDescription = $(this).closest('.temoignage-card').find('.card-text').attr(
+                    'title') || '';
 
                 // Masquer tous les lecteurs et réinitialiser
-                $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer').addClass('d-none');
+                $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer, #pdfViewerContainer').addClass(
+                    'd-none');
                 $('#modalAudioPlayer').attr('src', '').get(0).load();
                 $('#modalVideoPlayer').attr('src', '').get(0).load();
                 $('#modalIframePlayer').attr('src', '');
+                $('#modalPdfViewer').attr('src', '');
 
                 if (mediaType === 'audio') {
-                    $('#modalAudioPlayer').attr('src', podcastUrl).get(0).load();
+                    $('#modalAudioPlayer').attr('src', temoignageUrl).get(0).load();
                     $('#audioPlayerContainer').removeClass('d-none');
                     $('#mediaTypeBadge').text('Audio').removeClass('d-none');
                 } else if (mediaType === 'video_link') {
-                    $('#modalIframePlayer').attr('src', podcastUrl);
+                    $('#modalIframePlayer').attr('src', temoignageUrl);
                     $('#iframePlayerContainer').removeClass('d-none');
                     $('#mediaTypeBadge').text('Vidéo en ligne').removeClass('d-none');
                 } else if (mediaType === 'video_file') {
-                    $('#modalVideoPlayer').attr('src', podcastUrl).get(0).load();
+                    $('#modalVideoPlayer').attr('src', temoignageUrl).get(0).load();
                     $('#videoPlayerContainer').removeClass('d-none');
                     $('#mediaTypeBadge').text('Vidéo locale').removeClass('d-none');
+                } else if (mediaType === 'pdf') {
+                    $('#modalPdfViewer').attr('src', temoignageUrl);
+                    $('#pdfViewerContainer').removeClass('d-none');
+                    $('#mediaTypeBadge').text('PDF').removeClass('d-none');
                 }
 
-                $('#podcastTitle').text(podcastName);
-                $('#podcastDescription').text(podcastDescription);
-                $('#podcastViewModal').modal('show');
+                $('#temoignageTitle').text(temoignageName);
+                $('#temoignageDescription').text(temoignageDescription);
+                $('#temoignageViewModal').modal('show');
             });
 
             // ===== NETTOYAGE DU MODAL =====
-            $('#podcastViewModal').on('hidden.bs.modal', function() {
+            $('#temoignageViewModal').on('hidden.bs.modal', function() {
                 // Arrêter tous les médias
                 $('#modalAudioPlayer').get(0).pause();
                 $('#modalVideoPlayer').get(0).pause();
@@ -604,16 +626,18 @@
                 $('#modalAudioPlayer').attr('src', '');
                 $('#modalVideoPlayer').attr('src', '');
                 $('#modalIframePlayer').attr('src', '');
+                $('#modalPdfViewer').attr('src', '');
 
                 // Masquer tous les lecteurs
-                $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer').addClass('d-none');
+                $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer, #pdfViewerContainer').addClass(
+                    'd-none');
 
                 // Vider les informations
-                $('#podcastTitle, #podcastDescription, #mediaTypeBadge').text('');
+                $('#temoignageTitle, #temoignageDescription, #mediaTypeBadge').text('');
             });
 
             // ===== TÉLÉCHARGEMENT =====
-            $('#downloadPodcastBtn').on('click', function() {
+            $('#downloadTemoignageBtn').on('click', function() {
                 const mediaType = $('#mediaTypeBadge').text();
                 let downloadUrl = '';
 
@@ -621,13 +645,16 @@
                     downloadUrl = $('#modalAudioPlayer').attr('src');
                 } else if (mediaType === 'Vidéo locale') {
                     downloadUrl = $('#modalVideoPlayer').attr('src');
+                } else if (mediaType === 'PDF') {
+                    downloadUrl = $('#modalPdfViewer').attr('src');
                 }
 
                 if (downloadUrl) {
                     const link = document.createElement('a');
                     link.href = downloadUrl;
-                    link.download = $('#podcastTitle').text() + 
-                        (mediaType === 'Audio' ? '.mp3' : '.mp4');
+                    link.download = $('#temoignageTitle').text() + 
+                        (mediaType === 'Audio' ? '.mp3' : 
+                         mediaType === 'Vidéo locale' ? '.mp4' : '.pdf');
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
@@ -639,7 +666,7 @@
             });
 
             // ===== LECTURE AUTOMATIQUE =====
-            $('#podcastViewModal').on('shown.bs.modal', function() {
+            $('#temoignageViewModal').on('shown.bs.modal', function() {
                 const audioPlayer = $('#modalAudioPlayer').get(0);
                 const videoPlayer = $('#modalVideoPlayer').get(0);
 

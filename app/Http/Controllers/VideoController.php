@@ -25,7 +25,7 @@ class VideoController extends Controller
         // Recherche
         if ($request->filled('search')) {
             $query->where('nom', 'like', "%{$request->search}%")
-            ->orWhere('description', 'like', "%{$request->search}%");    
+                ->orWhere('description', 'like', "%{$request->search}%");
         }
 
         // Filtrage par type
@@ -37,7 +37,45 @@ class VideoController extends Controller
 
         $videos = $query->paginate(12);
 
-        return view('admin.medias.videos.index', compact('videos'));
+        // Préparer les données pour la vue
+        $videosData = $videos->map(function ($video) {
+            $isLink = $video->media && $video->media->type === 'link';
+            $isVideo = $video->media && $video->media->type === 'video';
+
+            $thumbnailUrl = null;
+            $mediaType = '';
+
+            if ($isLink) {
+                $rawUrl = $video->media->url_fichier;
+                $mediaType = 'video_link';
+
+                if (str_contains($rawUrl, 'youtube.com/watch?v=')) {
+                    $videoId = explode('v=', parse_url($rawUrl, PHP_URL_QUERY))[1] ?? null;
+                    $videoId = explode('&', $videoId)[0];
+                    $thumbnailUrl = $videoId ? "https://www.youtube.com/embed/$videoId" : $rawUrl;
+                } elseif (str_contains($rawUrl, 'youtu.be/')) {
+                    $videoId = basename(parse_url($rawUrl, PHP_URL_PATH));
+                    $thumbnailUrl = "https://www.youtube.com/embed/$videoId";
+                } else {
+                    $thumbnailUrl = $rawUrl;
+                }
+            } elseif ($isVideo) {
+                $mediaType = 'video_file';
+                $thumbnailUrl = asset('storage/' . $video->media->url_fichier);
+            }
+
+            return (object)[
+                'id' => $video->id,
+                'nom' => $video->nom,
+                'description' => $video->description,
+                'created_at' => $video->created_at,
+                'media_type' => $mediaType,
+                'thumbnail_url' => $thumbnailUrl,
+                'is_link' => $isLink
+            ];
+        });
+
+        return view('admin.medias.videos.index', compact('videos', 'videosData'));
     }
 
 
@@ -103,7 +141,7 @@ class VideoController extends Controller
 
             // Création du média
             $media = Media::create([
-                'url_fichier' => $filePaths, // Stocker toutes les qualités
+                'url_fichier' => $filePaths,
                 'type' => $type,
                 'insert_by' => auth()->id(),
                 'update_by' => auth()->id(),

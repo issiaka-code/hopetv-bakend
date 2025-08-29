@@ -9,6 +9,8 @@ class LienUtile extends Model
 {
     use HasFactory;
 
+    protected $table = 'liens_utiles';
+
     protected $fillable = ['nom', 'lien', 'insert_by', 'update_by', 'is_deleted'];
 
     // Relations

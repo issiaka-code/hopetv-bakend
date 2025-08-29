@@ -122,6 +122,14 @@
             content: "Parcourir";
         }
 
+        /* Media type badge */
+        .media-type-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+        }
+
         /* Responsive improvements */
         @media (max-width: 1400px) {
             #videos-grid {
@@ -315,6 +323,12 @@
                                 <i class="fas fa-filter py-2"></i> Filtrer
                             </button>
                         </div>
+                        <div class="col-md-2 my-1">
+                            <a href="{{ route('videos.index') }}" class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-sync py-2"></i> Réinitialiser
+                            </a>
+                        </div>
+
                     </div>
                 </form>
             </div>
@@ -323,43 +337,21 @@
             <div class="row">
                 <div class="col-12">
                     <div id="videos-grid">
-                        @forelse($videos as $video)
-                            @php
-                                $isLink = $video->media && $video->media->type === 'link';
-
-                                if ($isLink) {
-                                    // Récupération de l’URL brute
-                                    $rawUrl = $video->media->url_fichier;
-
-                                    // Conversion d’un lien watch en embed
-                                    if (Str::contains($rawUrl, 'youtube.com/watch?v=')) {
-                                        $videoId = explode('v=', parse_url($rawUrl, PHP_URL_QUERY))[1] ?? null;
-                                        $thumbnailUrl = $videoId ? "https://www.youtube.com/embed/$videoId" : $rawUrl;
-                                    } elseif (Str::contains($rawUrl, 'youtu.be/')) {
-                                        $videoId = basename(parse_url($rawUrl, PHP_URL_PATH));
-                                        $thumbnailUrl = "https://www.youtube.com/embed/$videoId";
-                                    } else {
-                                        // Dans le cas où c’est déjà un embed ou un autre type de lien
-                                        $thumbnailUrl = $rawUrl;
-                                    }
-                                } else {
-                                    $thumbnailUrl = asset('storage/' . $video->media->url_fichier);
-                                }
-                            @endphp
-
-
+                        @forelse($videosData as $video)
                             <div class="video-grid-item">
                                 <div class="card video-card">
                                     <!-- Miniature -->
                                     <div class="video-thumbnail-container">
-                                        <div class="video-thumbnail position-relative" data-video-url="{{ $thumbnailUrl }}"
+                                        <div class="video-thumbnail position-relative"
+                                            data-video-url="{{ $video->thumbnail_url }}"
                                             data-video-name="{{ $video->nom }}"
-                                            data-is-link="{{ $isLink ? 'true' : 'false' }}">
+                                            data-media-type="{{ $video->media_type }}">
 
-                                            @if ($isLink)
-                                                <iframe src="{{ $thumbnailUrl }}" frameborder="0" allowfullscreen></iframe>
+                                            @if ($video->media_type === 'video_link')
+                                                <iframe src="{{ $video->thumbnail_url }}" frameborder="0"
+                                                    allowfullscreen></iframe>
                                             @else
-                                                <video src="{{ $thumbnailUrl }}" controls></video>
+                                                <video src="{{ $video->thumbnail_url }}"></video>
                                             @endif
 
                                             <div class="thumbnail-overlay">
@@ -367,6 +359,11 @@
                                             </div>
                                         </div>
                                     </div>
+
+                                    <!-- Badge type média -->
+                                    <span class="badge badge-primary media-type-badge">
+                                        {{ $video->media_type === 'video_link' ? 'Lien vidéo' : 'Fichier vidéo' }}
+                                    </span>
 
                                     <!-- Corps de la carte -->
                                     <div class="card-body">
@@ -386,10 +383,10 @@
                                             <div class="btn-group">
                                                 <!-- Bouton Voir -->
                                                 <button class="btn btn-sm btn-outline-info view-video-btn rounded"
-                                                    data-video-url="{{ $thumbnailUrl }}"
+                                                    data-video-url="{{ $video->thumbnail_url }}"
                                                     data-video-name="{{ $video->nom }}" data-title="{{ $video->nom }}"
                                                     data-description="{{ $video->description }}"
-                                                    data-is-link="{{ $isLink }}">
+                                                    data-media-type="{{ $video->media_type }}">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
 
@@ -420,7 +417,6 @@
                         <div class="empty-state">
                             <i class="fas fa-video-slash fa-4x text-muted mb-3"></i>
                             <h4 class="text-muted">Aucune vidéo disponible</h4>
-                            <p class="text-muted">Commencez par ajouter votre première vidéo</p>
                         </div>
                     </div>
                     @endforelse

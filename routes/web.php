@@ -28,22 +28,25 @@ Route::get('/', function () {
 });
 
 Route::get('login', [AuthViewController::class, 'createLogin'])
-->name('view.login');
+    ->name('view.login');
 
 Route::get('/dashboard', function () {
     return view('admin.index');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // Routes des ressources (CRUD)
-Route::resource('medias', MediaController::class);
-Route::resource('videos', VideoController::class);
-Route::resource('podcasts', PodcastController::class);
-Route::resource('temoignages', TemoignageController::class);
-Route::resource('playlists', PlaylistController::class);
-Route::resource('playlist-items', PlaylistItemController::class);
-Route::resource('info-bulles', InfoBulleController::class);
-Route::resource('parametres', ParametreController::class);
-Route::resource('liens-utiles', LienUtileController::class);
-Route::resource('users', UserController::class);
+Route::middleware('auth')->group(function () {
 
-require __DIR__.'/auth.php';
+    Route::resource('videos', VideoController::class);
+    Route::resource('podcasts', PodcastController::class);
+    Route::resource('temoignages', TemoignageController::class);
+    Route::resource('playlists', PlaylistController::class);
+    Route::resource('playlist-items', PlaylistItemController::class);
+    Route::resource('info-bulles', InfoBulleController::class);
+    Route::resource('parametres', ParametreController::class);
+    Route::resource('liens-utiles', LienUtileController::class);
+    Route::patch('/{id}/toggle-status', [InfoBulleController::class, 'toggleStatus'])->name('info-bulles.toggle-status');
+
+});
+
+require __DIR__ . '/auth.php';

@@ -13,14 +13,16 @@
             <div class="modal-body">
                 <!-- Lecteur vidéo -->
                 <div id="videoPlayerContainer" class="text-center overflow-hidden">
-                    <video id="modalVideoPlayer" controls class="w-100 d-none" style="height: 30vh; border-radius: 5px;"></video>
+                    <video id="modalVideoPlayer" controls class="w-100 d-none" style="height: 30vh; border-radius: 10px;"></video>
                     <iframe id="modalIframePlayer" class="w-100 d-none" style="height: 30vh; border-radius: 10px;"
                         allowfullscreen></iframe>
                 </div>
-                
+                <div class="text-center mb-3">
+                    <span id="mediaTypeBadge" class="badge badge-pill badge-info"></span>
+                </div>
                 <!-- Infos vidéo -->
                 <div class="mt-2 text-justify">
-                    <h4 id="videoTitle" class="font-weight-bold text-center mb-3"></h4>
+                    <h4 id="videoTitle" class="font-weight-bold text-center"></h4>
                     <div class="card">
                         <div class="card-header bg-light">
                             <h6 class="mb-0">Description</h6>
