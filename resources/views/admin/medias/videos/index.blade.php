@@ -344,12 +344,13 @@
                                     <div class="video-thumbnail-container">
                                         <div class="video-thumbnail position-relative"
                                             data-video-url="{{ $video->thumbnail_url }}"
-                                            data-video-name="{{ $video->nom }}"
-                                            data-media-type="{{ $video->media_type }}">
+                                            data-video-name="{{ $video->nom }}" data-media-type="{{ $video->media_type }}"
+                                            data-is-link="{{ $video->media_type === 'video_link' ? 'true' : 'false' }}">
+
 
                                             @if ($video->media_type === 'video_link')
-                                                <iframe src="{{ $video->thumbnail_url }}" frameborder="0"
-                                                    allowfullscreen></iframe>
+                                                <iframe src="{{ $video->thumbnail_url }}" class="w-100 h-100"
+                                                    frameborder="0" allowfullscreen></iframe>
                                             @else
                                                 <video src="{{ $video->thumbnail_url }}"></video>
                                             @endif
@@ -559,7 +560,6 @@
 
             // ===== GESTION COMMUNE =====
 
-            // Visualisation des vidéos dans la grille
             $(document).on('click', '.view-video-btn, .video-thumbnail', function() {
                 const videoUrl = $(this).data('video-url');
                 const videoName = $(this).data('video-name');
@@ -568,28 +568,30 @@
                     '';
 
                 // Masquer les deux lecteurs initialement
-                $('#modalVideoPlayer').addClass('d-none').attr('src', '');
-                $('#modalIframePlayer').addClass('d-none').attr('src', '');
+                $('#videoPlayerContainer').addClass('d-none');
+                $('#iframePlayerContainer').addClass('d-none');
 
                 if (isLink) {
-                    // C'est un lien externe
-                    let embedUrl = videoUrl;
-
                     // Afficher l'iframe
-                    $('#modalIframePlayer')
-                        .attr('src', embedUrl)
-                        .removeClass('d-none');
-
+                    $('#modalIframePlayer').attr('src', videoUrl);
+                    $('#iframePlayerContainer').removeClass('d-none');
+                    $('#mediaTypeBadge').text('Lien externe');
                 } else {
-                    // C'est un fichier local
-                    $('#modalVideoPlayer')
-                        .attr('src', videoUrl)
-                        .removeClass('d-none');
+                    // Afficher la vidéo locale
+                    $('#modalVideoPlayer').attr('src', videoUrl);
+                    $('#videoPlayerContainer').removeClass('d-none');
+                    $('#mediaTypeBadge').text('Fichier local');
                 }
 
-                // Mettre à jour les informations de la vidéo
+
+                // Infos vidéo
                 $('#videoTitle').text(videoName);
                 $('#videoDescription').text(videoDescription);
+
+                // Bouton téléchargement
+                $('#downloadVideoBtn').off('click').on('click', function() {
+                    window.open(videoUrl, '_blank');
+                });
 
                 // Afficher le modal
                 $('#videoViewModal').modal('show');
@@ -597,36 +599,23 @@
 
             // Nettoyage quand le modal se ferme
             $('#videoViewModal').on('hidden.bs.modal', function() {
-                // Arrêter et réinitialiser la vidéo
                 const videoPlayer = $('#modalVideoPlayer')[0];
                 if (videoPlayer) {
                     videoPlayer.pause();
                     videoPlayer.currentTime = 0;
                 }
 
-                // Supprimer la source de l'iframe pour libérer la mémoire
+                $('#modalVideoPlayer').attr('src', '');
                 $('#modalIframePlayer').attr('src', '');
 
-                // Masquer les deux lecteurs
-                $('#modalVideoPlayer').addClass('d-none');
-                $('#modalIframePlayer').addClass('d-none');
+                $('#videoPlayerContainer').addClass('d-none');
+                $('#iframePlayerContainer').addClass('d-none');
 
-                // Vider les informations
                 $('#videoTitle').text('');
                 $('#videoDescription').text('');
+                $('#mediaTypeBadge').text('');
             });
 
-            // Gestion de la lecture automatique (optionnelle)
-            $('#videoViewModal').on('shown.bs.modal', function() {
-                // Tentative de lecture automatique pour les vidéos locales
-                const videoPlayer = $('#modalVideoPlayer')[0];
-                if (videoPlayer && !videoPlayer.classList.contains('d-none')) {
-                    videoPlayer.play().catch(function(error) {
-                        console.log('Lecture automatique bloquée:', error);
-                        // La lecture automatique peut être bloquée par le navigateur
-                    });
-                }
-            });
 
             // Amélioration de l'expérience mobile
             if ('ontouchstart' in document.documentElement) {

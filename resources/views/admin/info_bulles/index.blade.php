@@ -177,6 +177,9 @@
             cursor: pointer;
             transition: all 0.3s;
             font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .btn-primary {
@@ -203,11 +206,41 @@
             font-size: 0.8rem;
         }
 
+        .btn-outline-primary {
+            border: 2px solid #4e73df;
+            color: #4e73df;
+            background: transparent;
+        }
+
+        .btn-outline-primary:hover {
+            background: #4e73df;
+            color: white;
+        }
+
         /* Action Buttons */
         .action-buttons {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
+        }
+
+        /* Style spécifique pour les boutons d'action dans le tableau */
+        .table .action-buttons {
+            justify-content: center;
+        }
+
+        .table .btn {
+            min-width: 36px;
+            height: 36px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .table .btn i {
+            margin: 0;
+            font-size: 0.9rem;
         }
 
         /* Alert Styles */
@@ -237,6 +270,7 @@
             font-weight: 700;
             color: #4e73df;
             padding: 15px;
+            text-align: center;
         }
 
         .table td {
@@ -264,6 +298,36 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        /* Modal Styles */
+        .modal-content {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            color: white;
+            border-bottom: none;
+            border-radius: 12px 12px 0 0;
+            padding: 20px;
+        }
+
+        .modal-title {
+            font-weight: 600;
+            font-size: 1.3rem;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #e3e6f0;
+            padding: 20px;
+            border-radius: 0 0 12px 12px;
         }
 
         /* Responsive Design */
@@ -295,6 +359,11 @@
 
             .text-truncate {
                 max-width: 150px;
+            }
+
+            .table .action-buttons {
+                flex-direction: row;
+                justify-content: center;
             }
         }
 
@@ -397,11 +466,11 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h2 class="section-title">
-                                </i>Gestion des Info-Bulles
+                                <i class="fas fa-comment-dots mr-2"></i>Gestion des Info-Bulles
                             </h2>
                             <p class="section-subtitle">Configurez les messages contextuels de votre site</p>
                         </div>
-                        <button class="btn btn-primary" data-toggle="collapse" data-target="#formCollapse">
+                        <button class="btn btn-primary" data-toggle="modal" data-target="#addInfoBulleModal">
                             <i class="fas fa-plus mr-2"></i>Nouvelle Info-Bulle
                         </button>
                     </div>
@@ -437,64 +506,10 @@
                 </form>
             </div>
 
-            <!-- Formulaire d'ajout (collapsible) -->
-            <div class="card collapse" id="formCollapse">
-                <div class="card-header">
-                    <h3><i class="fas fa-plus-circle mr-2"></i>Ajouter une Info-Bulle</h3>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('info-bulles.store') }}" method="POST" id="infoBulleForm">
-                        @csrf
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="titre">Titre de l'info-bulle *</label>
-                                    <input type="text" class="form-control" id="titre" name="titre" 
-                                           value="{{ old('titre') }}" required
-                                           placeholder="Ex: Guide d'utilisation">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="d-block">Statut d'activation</label>
-                                    <div class="switch-label">
-                                        <label class="switch">
-                                            <input type="checkbox" id="is_active" name="is_active" value="1" 
-                                                   {{ old('is_active', true) ? 'checked' : '' }}>
-                                            <span class="slider"></span>
-                                        </label>
-                                        <span class="switch-text">{{ old('is_active', true) ? 'Activée' : 'Désactivée' }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="texte">Contenu de l'info-bulle *</label>
-                            <textarea class="form-control" id="texte" name="texte" rows="4" required
-                                      placeholder="Ex: Cette fonctionnalité vous permet de...">{{ old('texte') }}</textarea>
-                        </div>
-
-                        <div class="action-buttons">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save mr-2"></i>Enregistrer
-                            </button>
-                            <button type="reset" class="btn btn-secondary">
-                                <i class="fas fa-redo mr-2"></i>Réinitialiser
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary" data-toggle="collapse" data-target="#formCollapse">
-                                <i class="fas fa-times mr-2"></i>Annuler
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
             <!-- Tableau des info-bulles existantes -->
             <div class="card">
                 <div class="card-header">
-                    </i>Liste des Info-Bulles</h3>
+                    <h3><i class="fas fa-list mr-2"></i>Liste des Info-Bulles</h3>
                 </div>
                 <div class="card-body">
                     @if($infoBulles->count() > 0)
@@ -554,13 +569,15 @@
                                                     </form>
 
                                                     <!-- Bouton Modifier -->
-                                                    <button class="btn btn-sm btn-primary  edit-btn"
-                                                            data-info-bulle-id="{{ $infoBulle->id }}"
-                                                            data-info-bulle-titre="{{ $infoBulle->titre }}"
-                                                            data-info-bulle-texte="{{ $infoBulle->texte }}"
-                                                            data-info-bulle-active="{{ $infoBulle->is_active }}"
+                                                    <button class="btn btn-sm btn-primary edit-btn"
+                                                            data-toggle="modal" 
+                                                            data-target="#editInfoBulleModal"
+                                                            data-id="{{ $infoBulle->id }}"
+                                                            data-titre="{{ $infoBulle->titre }}"
+                                                            data-texte="{{ $infoBulle->texte }}"
+                                                            data-active="{{ $infoBulle->is_active }}"
                                                             title="Modifier">
-                                                        <i class="fas fa-edit m-1"></i>
+                                                        <i class="fas fa-edit"></i>
                                                     </button>
 
                                                     <!-- Bouton Supprimer -->
@@ -571,7 +588,7 @@
                                                         <button type="submit" class="btn btn-sm btn-danger"
                                                                 onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette info-bulle ?')"
                                                                 title="Supprimer">
-                                                            <i class="fas fa-trash m-1"></i>
+                                                            <i class="fas fa-trash"></i>
                                                         </button>
                                                     </form>
                                                 </div>
@@ -593,7 +610,7 @@
                             <i class="fas fa-comment-dots fa-3x text-muted mb-3"></i>
                             <h5 class="text-muted">Aucune info-bulle configurée</h5>
                             <p class="text-muted">Commencez par ajouter votre première info-bulle.</p>
-                            <button class="btn btn-primary" data-toggle="collapse" data-target="#formCollapse">
+                            <button class="btn btn-primary" data-toggle="modal" data-target="#addInfoBulleModal">
                                 <i class="fas fa-plus mr-2"></i>Ajouter une info-bulle
                             </button>
                         </div>
@@ -602,59 +619,162 @@
             </div>
         </div>
     </section>
+
+    <!-- Modal d'ajout -->
+    <div class="modal fade" id="addInfoBulleModal" tabindex="-1" role="dialog" aria-labelledby="addInfoBulleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addInfoBulleModalLabel">
+                        <i class="fas fa-plus-circle mr-2"></i>Ajouter une Info-Bulle
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="{{ route('info-bulles.store') }}" method="POST" id="addInfoBulleForm">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="add_titre">Titre de l'info-bulle *</label>
+                                    <input type="text" class="form-control" id="add_titre" name="titre" 
+                                           value="{{ old('titre') }}" required
+                                           placeholder="Ex: Guide d'utilisation">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="d-block">Statut d'activation</label>
+                                    <div class="switch-label">
+                                        <label class="switch">
+                                            <input type="checkbox" id="add_is_active" name="is_active" value="1" 
+                                                   {{ old('is_active', true) ? 'checked' : '' }}>
+                                            <span class="slider"></span>
+                                        </label>
+                                        <span class="switch-text" id="add_switch_text">
+                                            {{ old('is_active', true) ? 'Activée' : 'Désactivée' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="add_texte">Contenu de l'info-bulle *</label>
+                            <textarea class="form-control" id="add_texte" name="texte" rows="4" required
+                                      placeholder="Ex: Cette fonctionnalité vous permet de...">{{ old('texte') }}</textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            <i class="fas fa-times mr-2"></i>Annuler
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save mr-2"></i>Enregistrer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal d'édition -->
+    <div class="modal fade" id="editInfoBulleModal" tabindex="-1" role="dialog" aria-labelledby="editInfoBulleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editInfoBulleModalLabel">
+                        <i class="fas fa-edit mr-2"></i>Modifier l'Info-Bulle
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="editInfoBulleForm" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_titre">Titre de l'info-bulle *</label>
+                                    <input type="text" class="form-control" id="edit_titre" name="titre" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="d-block">Statut d'activation</label>
+                                    <div class="switch-label">
+                                        <label class="switch">
+                                            <input type="checkbox" id="edit_is_active" name="is_active" value="1">
+                                            <span class="slider"></span>
+                                        </label>
+                                        <span class="switch-text" id="edit_switch_text">Activée</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit_texte">Contenu de l'info-bulle *</label>
+                            <textarea class="form-control" id="edit_texte" name="texte" rows="4" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            <i class="fas fa-times mr-2"></i>Annuler
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save mr-2"></i>Mettre à jour
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
     <script>
         $(document).ready(function() {
-            // Gestion du switch de statut
-            $('#is_active').change(function() {
-                $('.switch-text').text(this.checked ? 'Activée' : 'Désactivée');
+            // Gestion du switch de statut pour l'ajout
+            $('#add_is_active').change(function() {
+                $('#add_switch_text').text(this.checked ? 'Activée' : 'Désactivée');
             });
 
-            // Gestion de l'édition
-            $('.edit-btn').click(function() {
-                const infoBulleId = $(this).data('info-bulle-id');
-                const titre = $(this).data('info-bulle-titre');
-                const texte = $(this).data('info-bulle-texte');
-                const isActive = $(this).data('info-bulle-active');
-
-                // Remplir le formulaire avec les données existantes
-                $('#titre').val(titre);
-                $('#texte').val(texte);
-                $('#is_active').prop('checked', isActive).trigger('change');
-                
-                // Changer l'action du formulaire
-                $('#infoBulleForm').attr('action', "{{ route('info-bulles.update', ':id') }}".replace(':id', infoBulleId));
-                $('#infoBulleForm').append('<input type="hidden" name="_method" value="PUT">');
-                
-                // Afficher le formulaire
-                $('#formCollapse').collapse('show');
-                
-                // Changer le titre du header
-                $('.card-header h3').html('<i class="fas fa-edit mr-2"></i>Modifier l\'Info-Bulle');
+            // Gestion du switch de statut pour l'édition
+            $('#edit_is_active').change(function() {
+                $('#edit_switch_text').text(this.checked ? 'Activée' : 'Désactivée');
             });
 
-            // Réinitialisation du formulaire
-            $('#infoBulleForm').on('reset', function() {
-                // Remettre l'action à store
-                $(this).attr('action', "{{ route('info-bulles.store') }}");
-                $('input[name="_method"]').remove();
+            // Gestion de l'édition - Remplir le modal avec les données
+            $('#editInfoBulleModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget);
+                var id = button.data('id');
+                var titre = button.data('titre');
+                var texte = button.data('texte');
+                var active = button.data('active');
                 
-                // Remettre le statut à activé
-                $('#is_active').prop('checked', true).trigger('change');
+                var modal = $(this);
+                modal.find('#edit_titre').val(titre);
+                modal.find('#edit_texte').val(texte);
+                modal.find('#edit_is_active').prop('checked', active);
+                modal.find('#edit_switch_text').text(active ? 'Activée' : 'Désactivée');
                 
-                // Remettre le titre du header
-                $('.card-header h3').html('<i class="fas fa-plus-circle mr-2"></i>Ajouter une Info-Bulle');
+                // Mettre à jour l'action du formulaire
+                modal.find('#editInfoBulleForm').attr('action', "{{ route('info-bulles.update', ':id') }}".replace(':id', id));
             });
 
-            // Quand le formulaire est fermé, le réinitialiser
-            $('#formCollapse').on('hidden.bs.collapse', function() {
-                $('#infoBulleForm').trigger('reset');
+            // Réinitialiser le modal d'ajout quand il est fermé
+            $('#addInfoBulleModal').on('hidden.bs.modal', function () {
+                $(this).find('form')[0].reset();
+                $('#add_is_active').prop('checked', true).trigger('change');
             });
 
             // Désactiver les boutons pendant l'envoi
-            $('#infoBulleForm').on('submit', function() {
+            $('form').on('submit', function() {
                 $(this).find('button[type="submit"]')
                     .addClass('btn-loading')
                     .prop('disabled', true);

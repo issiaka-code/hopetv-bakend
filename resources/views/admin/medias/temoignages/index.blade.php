@@ -636,35 +636,6 @@
                 $('#temoignageTitle, #temoignageDescription, #mediaTypeBadge').text('');
             });
 
-            // ===== TÉLÉCHARGEMENT =====
-            $('#downloadTemoignageBtn').on('click', function() {
-                const mediaType = $('#mediaTypeBadge').text();
-                let downloadUrl = '';
-
-                if (mediaType === 'Audio') {
-                    downloadUrl = $('#modalAudioPlayer').attr('src');
-                } else if (mediaType === 'Vidéo locale') {
-                    downloadUrl = $('#modalVideoPlayer').attr('src');
-                } else if (mediaType === 'PDF') {
-                    downloadUrl = $('#modalPdfViewer').attr('src');
-                }
-
-                if (downloadUrl) {
-                    const link = document.createElement('a');
-                    link.href = downloadUrl;
-                    link.download = $('#temoignageTitle').text() + 
-                        (mediaType === 'Audio' ? '.mp3' : 
-                         mediaType === 'Vidéo locale' ? '.mp4' : '.pdf');
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                } else if (mediaType === 'Vidéo en ligne') {
-                    window.open($('#modalIframePlayer').attr('src'), '_blank');
-                } else {
-                    alert('Téléchargement non disponible');
-                }
-            });
-
             // ===== LECTURE AUTOMATIQUE =====
             $('#temoignageViewModal').on('shown.bs.modal', function() {
                 const audioPlayer = $('#modalAudioPlayer').get(0);

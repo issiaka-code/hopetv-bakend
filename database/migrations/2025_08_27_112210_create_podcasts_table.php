@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('podcasts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('id_media')->constrained('medias');
-            $table->string('titre');
+            $table->string('nom');
             $table->text('description');
             $table->foreignId('insert_by')->constrained('users');
             $table->foreignId('update_by')->constrained('users');

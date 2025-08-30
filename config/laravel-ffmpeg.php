@@ -1,14 +1,9 @@
 <?php
 
 return [
-    'ffmpeg' => [
-        'binaries' => env('FFMPEG_BINARIES', 'ffmpeg'),
-
-        'threads' => 12,   // set to false to disable the default 'threads' filter
-    ],
-
-    'ffprobe' => [
-        'binaries' => env('FFPROBE_BINARIES', 'ffprobe'),
+    'binaries' => [
+        'ffmpeg'  => env('FFMPEG_PATH', 'ffmpeg'),
+        'ffprobe' => env('FFPROBE_PATH', 'ffprobe'),
     ],
 
     'timeout' => 3600,

@@ -210,8 +210,8 @@
             <!-- En-tête -->
             <div class="row mb-4">
                 <div class="col-12 text-center d-flex flex-row justify-content-between align-items-center">
-                    <h2 class="section-title">Paramètres du Site</h2>
-                    <p class="text-muted">Gérez la configuration de votre site</p>
+                    <h2 class="section-title">Paramètres </h2>
+                    <p class="text-muted">Gérez la configuration</p>
                 </div>
             </div>
 

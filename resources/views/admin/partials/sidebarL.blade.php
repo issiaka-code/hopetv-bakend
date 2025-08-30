@@ -5,8 +5,11 @@
     <aside id="sidebar-wrapper">
         <div class="sidebar-brand">
             <a href="{{ route('dashboard') }}">
-                <img src="{{ asset('storage/' . $parametre->logo) }}" alt="{{ config('app.name') }}" class="header-logo rounded" />
-                <span class="logo-name"> <small>{{  $parametre->nom_site }} </small> </span>
+                <img src="{{ $parametre && $parametre->logo ? asset('storage/' . $parametre->logo) : asset('assets/img/logo.png') }}"
+                    alt="{{ config('app.name') }}" class="header-logo rounded" />
+                <span class="logo-name">
+                    <small>{{ $parametre ? $parametre->nom_site : config('app.name') }}</small>
+                </span>
             </a>
         </div>
 

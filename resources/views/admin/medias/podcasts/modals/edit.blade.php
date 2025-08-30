@@ -14,10 +14,10 @@
                 @method('PUT')
                 <div class="modal-body">
                     <div class="form-group">
-                        <label class="font-weight-bold">Titre <span class="text-danger">*</span></label>
-                        <input type="text" name="titre" id="editPodcastTitre"
-                            class="form-control @error('titre') is-invalid @enderror" required>
-                        @error('titre')
+                        <label class="font-weight-bold">Nom <span class="text-danger">*</span></label>
+                        <input type="text" name="nom" id="editPodcastnom"
+                            class="form-control @error('nom') is-invalid @enderror" required>
+                        @error('nom')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>

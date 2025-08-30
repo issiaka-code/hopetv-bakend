@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\MediaController;
 use App\Http\Controllers\VideoController;
 use App\Http\Controllers\PodcastController;
 use App\Http\Controllers\PlaylistController;

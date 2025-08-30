@@ -2,15 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Log;
 use App\Models\Media;
 use App\Models\Temoignage;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
-use FFMpeg\Format\Video\X264;
-use FFMpeg\Format\Audio\Aac;
-use FFMpeg\Coordinate\Dimension;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use RealRashid\SweetAlert\Facades\Alert;
 use ProtoneMedia\LaravelFFMpeg\Support\FFMpeg;
@@ -89,92 +86,71 @@ class TemoignageController extends Controller
 
     public function store(Request $request)
     {
-        
-        // Validation de base
         $request->validate([
             'nom' => 'required|string|max:255',
             'description' => 'required|string',
             'media_type' => 'required|in:audio,video_file,video_link,pdf',
         ]);
 
-        // Validation conditionnelle selon le type
-        if ($request->media_type === 'audio') {
-            $request->validate([
-                'fichier_audio' => 'required|file|mimes:mp3,wav,aac,ogg,flac|max:512000', // 500MB max
-            ]);
-        } elseif ($request->media_type === 'video_file') {
-            $request->validate([
-                'fichier_video' => 'required|file|mimes:mp4,avi,mov,wmv,flv,mkv,webm|max:1024000', // 1GB max
-            ]);
-        } elseif ($request->media_type === 'video_link') {
-            $request->validate([
-                'lien_video' => 'required|url',
-            ]);
-        } elseif ($request->media_type === 'pdf') {
-            $request->validate([
-                'fichier_pdf' => 'required|file|mimes:pdf|max:20480', // 20MB max
-            ]);
-        }
-
         try {
-            DB::beginTransaction();
-            $filePath = null;
-            $type = $request->media_type === 'audio' ? 'audio' : 
-                   ($request->media_type === 'video_file' ? 'video' : 
-                   ($request->media_type === 'video_link' ? 'link' : 'pdf'));
+            if ($request->media_type === 'audio') {
+                $request->validate([
+                    'fichier_audio' => 'required|file|mimes:mp3,wav,aac,ogg,flac|max:512000',
+                ]);
 
-            if ($request->media_type === 'audio' && $request->hasFile('fichier_audio')) {
                 $file = $request->file('fichier_audio');
+                $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                $uniqueName = $filename . '_' . now()->format('Ymd_His') . '.mp3';
 
-                if (!$file->isValid()) {
-                    throw new \Exception('Fichier audio invalide');
-                }
+                // Stockage direct sans optimisation
+                $filePath = $file->storeAs('audios', $uniqueName, 'public');
+            } elseif ($request->media_type === 'video_file') {
+                $request->validate([
+                    'fichier_video' => 'required|file|mimes:mp4,avi,mov,wmv,flv,mkv,webm|max:1024000',
+                ]);
 
-                $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                $uniqueName = $originalName . '_' . now()->format('Ymd_His');
-
-                // Optimiser le fichier audio
-                $filePath = $this->optimizeAudioFile($file, $uniqueName);
-            } elseif ($request->media_type === 'video_file' && $request->hasFile('fichier_video')) {
                 $file = $request->file('fichier_video');
+                $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                $uniqueName = $filename . '_' . now()->format('Ymd_His') . '.mp4';
 
-                if (!$file->isValid()) {
-                    throw new \Exception('Fichier vidéo invalide');
-                }
+                // Stockage temporaire
+                $tempPath = $file->storeAs('temp/videos', "tmp_{$uniqueName}");
 
-                $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                $uniqueName = $originalName . '_' . now()->format('Ymd_His');
+                // Traitement avec FFmpeg
+                FFMpeg::fromDisk('local')
+                    ->open($tempPath)
+                    ->export()
+                    ->toDisk('public')
+                    ->inFormat(new \FFMpeg\Format\Video\X264('aac', 'libx264'))
+                    ->resize(1280, 720)
+                    ->save('videos/' . $uniqueName);
 
-                // Optimiser le fichier vidéo
-                $filePath = $this->optimizeVideoFile($file, $uniqueName);
+                // Nettoyage du fichier temporaire
+                Storage::disk('local')->delete($tempPath);
+
+                $filePath = 'videos/' . $uniqueName;
             } elseif ($request->media_type === 'video_link') {
+                $request->validate([
+                    'lien_video' => 'required|url',
+                ]);
                 $filePath = $request->lien_video;
+            } elseif ($request->media_type === 'pdf') {
+                $request->validate([
+                    'fichier_pdf' => 'required|file|mimes:pdf|max:20480',
+                ]);
 
-                if (!filter_var($filePath, FILTER_VALIDATE_URL)) {
-                    throw new \Exception('URL de vidéo invalide');
-                }
-            } elseif ($request->media_type === 'pdf' && $request->hasFile('fichier_pdf')) {
                 $file = $request->file('fichier_pdf');
+                $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                $uniqueName = $filename . '_' . now()->format('Ymd_His') . '.pdf';
 
-                if (!$file->isValid()) {
-                    throw new \Exception('Fichier PDF invalide');
-                }
-
-                $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                $uniqueName = $originalName . '_' . now()->format('Ymd_His');
-
-                // Stocker le fichier PDF
-                $filePath = $this->storePdfFile($file, $uniqueName);
-            } else {
-                throw new \Exception('Type de média ou fichier manquant');
+                // Stockage direct du PDF
+                $filePath = $file->storeAs('pdfs', $uniqueName, 'public');
             }
 
-            // Vérification finale
-            if (empty($filePath)) {
-                throw new \Exception('Aucun fichier ou lien fourni');
-            }
+            // Déterminer le type pour la base de données
+            $type = $request->media_type === 'audio' ? 'audio' : ($request->media_type === 'video_file' ? 'video' : ($request->media_type === 'video_link' ? 'link' : 'pdf'));
 
-            // Création du média
+            // Créer l'enregistrement média
             $media = Media::create([
                 'url_fichier' => $filePath,
                 'type' => $type,
@@ -182,12 +158,8 @@ class TemoignageController extends Controller
                 'update_by' => auth()->id(),
             ]);
 
-            if (!$media) {
-                throw new \Exception('Erreur lors de la création du média');
-            }
-
-            // Création du témoignage
-            $temoignage = Temoignage::create([
+            // Créer le témoignage
+            Temoignage::create([
                 'id_media' => $media->id,
                 'nom' => $request->nom,
                 'description' => $request->description,
@@ -195,121 +167,15 @@ class TemoignageController extends Controller
                 'update_by' => auth()->id(),
             ]);
 
-            if (!$temoignage) {
-                throw new \Exception('Erreur lors de la création du témoignage');
-            }
-
-            DB::commit();
             Alert::success('Succès', 'Témoignage créé avec succès');
             return redirect()->route('temoignages.index');
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->withErrors($e->validator)
-                ->withInput();
         } catch (\Exception $e) {
-            DB::rollBack();
-            Alert::error('Erreur', $e->getMessage());
-            return redirect()->back()
-                ->with('error', 'Erreur lors de la création du témoignage: ' . $e->getMessage())
-                ->withInput();
+            Log::error('Erreur lors de la création: ' . $e->getMessage());
+            Alert::error('Erreur', 'Impossible de créer le témoignage: ' . $e->getMessage());
+            return back()->withInput();
         }
     }
-
-    /**
-     * Optimise un fichier audio pour le web
-     */
-    private function optimizeAudioFile($file, $uniqueName)
-    {
-        try {
-            // Stocker temporairement le fichier original
-            $tempPath = $file->storeAs('temp/audio', $uniqueName . '_original.' . $file->getClientOriginalExtension());
-
-            // Convertir en format optimisé (MP3 128kbps)
-            $format = new Aac();
-            $format->setAudioKiloBitrate(128);
-
-            FFMpeg::fromDisk('local')
-                ->open($tempPath)
-                ->export()
-                ->toDisk('public')
-                ->inFormat($format)
-                ->save("medias/temoignages/audio/{$uniqueName}.mp3");
-
-            // Supprimer le fichier temporaire
-            Storage::delete($tempPath);
-
-            return "medias/temoignages/audio/{$uniqueName}.mp3";
-        } catch (\Exception $e) {
-            // Fallback: utiliser le fichier original
-            $originalFile = Storage::get($tempPath);
-            $fallbackPath = "medias/temoignages/audio/{$uniqueName}." . $file->getClientOriginalExtension();
-            Storage::disk('public')->put($fallbackPath, $originalFile);
-
-            // Supprimer le temporaire
-            Storage::delete($tempPath);
-
-            return $fallbackPath;
-        }
-    }
-
-    /**
-     * Optimise un fichier vidéo pour le web
-     */
-    private function optimizeVideoFile($file, $uniqueName)
-    {
-        try {
-            // Stocker temporairement le fichier original
-            $tempPath = $file->storeAs('temp/videos', $uniqueName . '_original.' . $file->getClientOriginalExtension());
-
-            // Format avec bas débit et résolution réduite
-            $optimizedFormat = (new X264('aac'))->setKiloBitrate(500); // 500 kbps
-
-            FFMpeg::fromDisk('local')
-                ->open($tempPath)
-                ->export()
-                ->toDisk('public')
-                ->inFormat($optimizedFormat)
-                ->addFilter('-vf', 'scale=640:360') // Réduire la résolution
-                ->addFilter('-r', '24') // Réduire le framerate
-                ->addFilter('-crf', '28') // Augmenter la compression
-                ->save("medias/temoignages/video/{$uniqueName}_optimized.mp4");
-
-            // Supprimer le fichier temporaire
-            Storage::delete($tempPath);
-
-            return "medias/temoignages/video/{$uniqueName}_optimized.mp4";
-        } catch (\Exception $e) {
-            // Fallback: utiliser le fichier original
-            $originalFile = Storage::get($tempPath);
-            $fallbackPath = "medias/temoignages/video/{$uniqueName}." . $file->getClientOriginalExtension();
-            Storage::disk('public')->put($fallbackPath, $originalFile);
-
-            // Supprimer le temporaire
-            Storage::delete($tempPath);
-
-            return $fallbackPath;
-        }
-    }
-
-    /**
-     * Stocke un fichier PDF
-     */
-    private function storePdfFile($file, $uniqueName)
-    {
-        try {
-            // Stocker le fichier PDF directement
-            $path = $file->storeAs(
-                'medias/temoignages/pdf',
-                $uniqueName . '.' . $file->getClientOriginalExtension(),
-                'public'
-            );
-
-            return $path;
-        } catch (\Exception $e) {
-            throw new \Exception('Erreur lors du stockage du fichier PDF: ' . $e->getMessage());
-        }
-    }
+    
 
     public function edit(Temoignage $temoignage)
     {
@@ -323,31 +189,11 @@ class TemoignageController extends Controller
 
     public function update(Request $request, $id)
     {
-        // Validation de base
         $request->validate([
             'nom' => 'required|string|max:255',
             'description' => 'required|string',
             'media_type' => 'required|in:audio,video_file,video_link,pdf',
         ]);
-
-        // Validation conditionnelle selon le type
-        if ($request->media_type === 'audio') {
-            $request->validate([
-                'fichier_audio' => 'nullable|file|mimes:mp3,wav,aac,ogg,flac|max:512000',
-            ]);
-        } elseif ($request->media_type === 'video_file') {
-            $request->validate([
-                'fichier_video' => 'nullable|file|mimes:mp4,avi,mov,wmv,flv,mkv,webm|max:1024000',
-            ]);
-        } elseif ($request->media_type === 'video_link') {
-            $request->validate([
-                'lien_video' => 'required|url',
-            ]);
-        } elseif ($request->media_type === 'pdf') {
-            $request->validate([
-                'fichier_pdf' => 'nullable|file|mimes:pdf|max:20480',
-            ]);
-        }
 
         try {
             DB::beginTransaction();
@@ -360,81 +206,86 @@ class TemoignageController extends Controller
                 throw new \Exception('Média introuvable pour ce témoignage');
             }
 
-            $filePath = $media->url_fichier;
-            $type = $request->media_type === 'audio' ? 'audio' : 
-                   ($request->media_type === 'video_file' ? 'video' : 
-                   ($request->media_type === 'video_link' ? 'link' : 'pdf'));
+            $filePath = $media->url_fichier; // par défaut, garder l'ancien fichier
+            $type = $media->type;
 
-            // Gestion des fichiers selon le type
-            if ($request->media_type === 'audio' && $request->hasFile('fichier_audio')) {
-                $file = $request->file('fichier_audio');
+            if ($request->media_type === 'audio') {
+                $request->validate([
+                    'fichier_audio' => 'nullable|file|mimes:mp3,wav,aac,ogg,flac|max:512000',
+                ]);
 
-                if (!$file->isValid()) {
-                    throw new \Exception('Fichier audio invalide');
+                if ($request->hasFile('fichier_audio')) {
+                    $file = $request->file('fichier_audio');
+                    $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                    $uniqueName = $filename . '_' . now()->format('Ymd_His') . '.mp3';
+
+                    // Supprimer ancien fichier audio
+                    if ($media->type === 'audio' && Storage::disk('public')->exists($media->url_fichier)) {
+                        Storage::disk('public')->delete($media->url_fichier);
+                    }
+
+                    // Stockage
+                    $filePath = $file->storeAs('audios', $uniqueName, 'public');
+                    $type = 'audio';
                 }
+            } elseif ($request->media_type === 'video_file') {
+                $request->validate([
+                    'fichier_video' => 'nullable|file|mimes:mp4,avi,mov,wmv,flv,mkv,webm|max:1024000',
+                ]);
 
-                // Supprimer l'ancien fichier audio
-                if ($media->type === 'audio' && Storage::disk('public')->exists($media->url_fichier)) {
-                    Storage::disk('public')->delete($media->url_fichier);
+                if ($request->hasFile('fichier_video')) {
+                    $file = $request->file('fichier_video');
+                    $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                    $uniqueName = $filename . '_' . now()->format('Ymd_His') . '.mp4';
+
+                    // Supprimer ancien fichier vidéo
+                    if ($media->type === 'video' && Storage::disk('public')->exists($media->url_fichier)) {
+                        Storage::disk('public')->delete($media->url_fichier);
+                    }
+
+                    // Stockage temporaire
+                    $tempPath = $file->storeAs('temp/videos', "tmp_{$uniqueName}");
+
+                    // Compression et export avec FFmpeg
+                    FFMpeg::fromDisk('local')
+                        ->open($tempPath)
+                        ->export()
+                        ->toDisk('public')
+                        ->inFormat(new \FFMpeg\Format\Video\X264('aac', 'libx264'))
+                        ->resize(1280, 720)
+                        ->save('videos/' . $uniqueName);
+
+                    Storage::disk('local')->delete($tempPath);
+
+                    $filePath = 'videos/' . $uniqueName;
+                    $type = 'video';
                 }
-
-                $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                $uniqueName = $originalName . '_' . now()->format('Ymd_His');
-
-                // Optimiser le nouveau fichier audio
-                $filePath = $this->optimizeAudioFile($file, $uniqueName);
-            } elseif ($request->media_type === 'video_file' && $request->hasFile('fichier_video')) {
-                $file = $request->file('fichier_video');
-
-                if (!$file->isValid()) {
-                    throw new \Exception('Fichier vidéo invalide');
-                }
-
-                // Supprimer l'ancien fichier vidéo
-                if ($media->type === 'video' && Storage::disk('public')->exists($media->url_fichier)) {
-                    Storage::disk('public')->delete($media->url_fichier);
-                }
-
-                $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                $uniqueName = $originalName . '_' . now()->format('Ymd_His');
-
-                // Optimiser le nouveau fichier vidéo
-                $filePath = $this->optimizeVideoFile($file, $uniqueName);
             } elseif ($request->media_type === 'video_link') {
+                $request->validate([
+                    'lien_video' => 'required|url',
+                ]);
+
                 $filePath = $request->lien_video;
+                $type = 'link';
+            } elseif ($request->media_type === 'pdf') {
+                $request->validate([
+                    'fichier_pdf' => 'nullable|file|mimes:pdf|max:20480',
+                ]);
 
-                if (!filter_var($filePath, FILTER_VALIDATE_URL)) {
-                    throw new \Exception('URL de vidéo invalide');
+                if ($request->hasFile('fichier_pdf')) {
+                    $file = $request->file('fichier_pdf');
+                    $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                    $uniqueName = $filename . '_' . now()->format('Ymd_His') . '.pdf';
+
+                    // Supprimer ancien PDF
+                    if ($media->type === 'pdf' && Storage::disk('public')->exists($media->url_fichier)) {
+                        Storage::disk('public')->delete($media->url_fichier);
+                    }
+
+                    // Stockage
+                    $filePath = $file->storeAs('pdfs', $uniqueName, 'public');
+                    $type = 'pdf';
                 }
-
-                // Si on passe d'un fichier à un lien, supprimer l'ancien fichier
-                if (($media->type === 'audio' || $media->type === 'video' || $media->type === 'pdf') &&
-                    Storage::disk('public')->exists($media->url_fichier)
-                ) {
-                    Storage::disk('public')->delete($media->url_fichier);
-                }
-            } elseif ($request->media_type === 'pdf' && $request->hasFile('fichier_pdf')) {
-                $file = $request->file('fichier_pdf');
-
-                if (!$file->isValid()) {
-                    throw new \Exception('Fichier PDF invalide');
-                }
-
-                // Supprimer l'ancien fichier PDF
-                if ($media->type === 'pdf' && Storage::disk('public')->exists($media->url_fichier)) {
-                    Storage::disk('public')->delete($media->url_fichier);
-                }
-
-                $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                $uniqueName = $originalName . '_' . now()->format('Ymd_His');
-
-                // Stocker le nouveau fichier PDF
-                $filePath = $this->storePdfFile($file, $uniqueName);
-            }
-
-            // Vérification finale
-            if (empty($filePath)) {
-                throw new \Exception('Aucun fichier ou lien fourni');
             }
 
             // Mise à jour du média
@@ -452,21 +303,18 @@ class TemoignageController extends Controller
             ]);
 
             DB::commit();
+
             Alert::success('Succès', 'Témoignage mis à jour avec succès');
             return redirect()->route('temoignages.index');
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->withErrors($e->validator)
-                ->withInput();
         } catch (\Exception $e) {
             DB::rollBack();
-            Alert::error('Erreur', $e->getMessage());
-            return redirect()->back()
-                ->with('error', 'Erreur lors de la mise à jour du témoignage: ' . $e->getMessage())
-                ->withInput();
+            Log::error('Erreur lors de la mise à jour: ' . $e->getMessage());
+            Alert::error('Erreur', 'Impossible de mettre à jour le témoignage: ' . $e->getMessage());
+            return back()->withInput();
         }
     }
+
+
 
     public function destroy($id)
     {

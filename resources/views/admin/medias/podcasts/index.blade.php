@@ -337,8 +337,10 @@
                             <select name="type" class="form-control">
                                 <option value="">Tous</option>
                                 <option value="audio" {{ request('type') === 'audio' ? 'selected' : '' }}>Audio</option>
-                                <option value="video_file" {{ request('type') === 'video_file' ? 'selected' : '' }}>Fichiers vidéo</option>
-                                <option value="video_link" {{ request('type') === 'video_link' ? 'selected' : '' }}>Liens vidéo</option>
+                                <option value="video_file" {{ request('type') === 'video_file' ? 'selected' : '' }}>Fichiers
+                                    vidéo</option>
+                                <option value="video_link" {{ request('type') === 'video_link' ? 'selected' : '' }}>Liens
+                                    vidéo</option>
                             </select>
                         </div>
                         <!-- Bouton recherche -->
@@ -365,8 +367,8 @@
                                 <div class="card podcast-card">
                                     <div class="podcast-thumbnail-container">
                                         <div class="podcast-thumbnail position-relative"
-                                            data-podcast-url="{{ $podcast->thumbnail_url }}" 
-                                            data-podcast-name="{{ $podcast->titre }}"
+                                            data-podcast-url="{{ $podcast->thumbnail_url }}"
+                                            data-podcast-name="{{ $podcast->nom }}"
                                             data-media-type="{{ $podcast->media_type }}">
 
                                             @if ($podcast->media_type === 'audio')
@@ -374,13 +376,14 @@
                                                     <i class="fas fa-music"></i>
                                                 </div>
                                             @elseif ($podcast->media_type === 'video_link')
-                                                <iframe src="{{ $podcast->thumbnail_url }}" frameborder="0" 
-                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                                <iframe src="{{ $podcast->thumbnail_url }}" frameborder="0"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                     allowfullscreen>
                                                 </iframe>
                                             @elseif ($podcast->media_type === 'video_file')
                                                 <!-- Pour les vidéos locales, utiliser une prévisualisation -->
-                                                <video  src="{{ $podcast->thumbnail_url }}" controls style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f8f9fa;">
+                                                <video src="{{ $podcast->thumbnail_url }}" controls
+                                                    style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f8f9fa;">
                                                     <i class="fas fa-video" style="font-size: 3rem; color: #4e73df;"></i>
                                                 </video>
                                             @endif
@@ -402,8 +405,8 @@
                                     </div>
 
                                     <div class="card-body">
-                                        <h5 class="card-title" title="{{ $podcast->titre }}">
-                                            {{ Str::limit($podcast->titre, 25) }}
+                                        <h5 class="card-title" title="{{ $podcast->nom }}">
+                                            {{ Str::limit($podcast->nom, 25) }}
                                         </h5>
                                         <p class="card-text text-muted small" title="{{ $podcast->description }}">
                                             {{ Str::limit($podcast->description, 30) }}
@@ -417,8 +420,8 @@
                                             <div class="btn-group">
                                                 <button class="btn btn-sm btn-outline-info view-podcast-btn rounded"
                                                     data-podcast-url="{{ $podcast->thumbnail_url }}"
-                                                    data-podcast-name="{{ $podcast->titre }}"
-                                                    data-title="{{ $podcast->titre }}"
+                                                    data-podcast-name="{{ $podcast->nom }}"
+                                                    data-title="{{ $podcast->nom }}"
                                                     data-description="{{ $podcast->description }}"
                                                     data-media-type="{{ $podcast->media_type }}">
                                                     <i class="fas fa-eye"></i>
@@ -442,14 +445,14 @@
                                 </div>
                             </div>
                         @empty
-                            <div class="col-12 text-center py-5">
-                                <div class="empty-state">
-                                    <i class="fas fa-podcast fa-4x text-muted mb-3"></i>
-                                    <h4 class="text-muted">Aucun podcast disponible</h4>
-                                </div>
-                            </div>
-                        @endforelse
                     </div>
+                    <div class="col-12 text-center py-5">
+                        <div class="empty-state">
+                            <i class="fas fa-podcast fa-4x text-muted mb-3"></i>
+                            <h4 class="text-muted">Aucun podcast disponible</h4>
+                        </div>
+                    </div>
+                    @endforelse
                 </div>
             </div>
 
@@ -528,25 +531,31 @@
                     url: "{{ route('podcasts.edit', ':id') }}".replace(':id', podcastId),
                     method: 'GET',
                     success: function(data) {
-                        $('#editPodcastTitre').val(data.titre);
+                        $('#editPodcastnom').val(data.nom);
                         $('#editPodcastDescription').val(data.description);
                         $('#editPodcastForm').attr('action',
-                            "{{ route('podcasts.update', ':id') }}".replace(':id', podcastId));
+                            "{{ route('podcasts.update', ':id') }}".replace(':id',
+                                podcastId));
 
                         if (data.media) {
                             let mediaType = data.media.type;
                             if (mediaType === 'audio') {
-                                $('#editMediaTypeAudio').prop('checked', true).trigger('change');
-                                $('#editCurrentAudioName').text(data.media.url_fichier.split('/').pop());
+                                $('#editMediaTypeAudio').prop('checked', true).trigger(
+                                'change');
+                                $('#editCurrentAudioName').text(data.media.url_fichier.split(
+                                    '/').pop());
                                 $('#editCurrentAudio').show();
                                 $('#editCurrentVideo, #editCurrentLink').hide();
                             } else if (mediaType === 'video') {
-                                $('#editMediaTypeVideoFile').prop('checked', true).trigger('change');
-                                $('#editCurrentVideoName').text(data.media.url_fichier.split('/').pop());
+                                $('#editMediaTypeVideoFile').prop('checked', true).trigger(
+                                    'change');
+                                $('#editCurrentVideoName').text(data.media.url_fichier.split(
+                                    '/').pop());
                                 $('#editCurrentVideo').show();
                                 $('#editCurrentAudio, #editCurrentLink').hide();
                             } else if (mediaType === 'link') {
-                                $('#editMediaTypeVideoLink').prop('checked', true).trigger('change');
+                                $('#editMediaTypeVideoLink').prop('checked', true).trigger(
+                                    'change');
                                 $('#editVideoLink').val(data.media.url_fichier);
                                 $('#editCurrentLinkValue').text(data.media.url_fichier);
                                 $('#editViewCurrentLink').attr('href', data.media.url_fichier);
@@ -567,10 +576,12 @@
                 const podcastUrl = $(this).data('podcast-url');
                 const podcastName = $(this).data('podcast-name');
                 const mediaType = $(this).data('media-type');
-                const podcastDescription = $(this).closest('.podcast-card').find('.card-text').attr('title') || '';
+                const podcastDescription = $(this).closest('.podcast-card').find('.card-text').attr(
+                    'title') || '';
 
                 // Masquer tous les lecteurs et réinitialiser
-                $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer').addClass('d-none');
+                $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer').addClass(
+                'd-none');
                 $('#modalAudioPlayer').attr('src', '').get(0).load();
                 $('#modalVideoPlayer').attr('src', '').get(0).load();
                 $('#modalIframePlayer').attr('src', '');
@@ -606,7 +617,8 @@
                 $('#modalIframePlayer').attr('src', '');
 
                 // Masquer tous les lecteurs
-                $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer').addClass('d-none');
+                $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer').addClass(
+                'd-none');
 
                 // Vider les informations
                 $('#podcastTitle, #podcastDescription, #mediaTypeBadge').text('');
@@ -626,7 +638,7 @@
                 if (downloadUrl) {
                     const link = document.createElement('a');
                     link.href = downloadUrl;
-                    link.download = $('#podcastTitle').text() + 
+                    link.download = $('#podcastTitle').text() +
                         (mediaType === 'Audio' ? '.mp3' : '.mp4');
                     document.body.appendChild(link);
                     link.click();

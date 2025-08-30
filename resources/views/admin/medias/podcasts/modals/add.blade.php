@@ -13,9 +13,9 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label class="font-weight-bold">Titre <span class="text-danger">*</span></label>
-                            <input type="text" name="titre" id="addPodcastTitre"
-                                class="form-control @error('titre') is-invalid @enderror" required>
-                            @error('titre')
+                            <input type="text" name="nom" id="addPodcastTitre"
+                                class="form-control @error('nom') is-invalid @enderror" required>
+                            @error('nom')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
