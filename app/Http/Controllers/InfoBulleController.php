@@ -40,14 +40,6 @@ class InfoBulleController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('admin.info_bulles.create');
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
@@ -55,7 +47,7 @@ class InfoBulleController extends Controller
         $validated = $request->validate([
             'titre' => 'required|string|max:255',
             'texte' => 'required|string',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean:1,0'
         ]);
 
         try {
@@ -76,23 +68,6 @@ class InfoBulleController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        $infoBulle = InfoBulle::where('id', $id)->where('is_deleted', false)->firstOrFail();
-        return view('admin.info-bulles.show', compact('infoBulle'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        $infoBulle = InfoBulle::where('id', $id)->where('is_deleted', false)->firstOrFail();
-        return view('admin.info-bulles.edit', compact('infoBulle'));
-    }
 
     /**
      * Update the specified resource in storage.
@@ -114,6 +89,7 @@ class InfoBulleController extends Controller
                 'is_active' => $validated['is_active'] ?? $infoBulle->is_active,
                 'update_by' => Auth::id(),
             ]);
+
             Alert::success('Succès', 'Info-bulle modifiée avec succès.');
             
             return redirect()->route('info-bulles.index');

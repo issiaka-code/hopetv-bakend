@@ -93,11 +93,11 @@
             box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
         }
 
-        input:checked + .slider {
+        input:checked+.slider {
             background-color: #1cc88a;
         }
 
-        input:checked + .slider:before {
+        input:checked+.slider:before {
             transform: translateX(30px);
         }
 
@@ -112,7 +112,7 @@
             font-weight: 600;
         }
 
-        input:checked + .slider:after {
+        input:checked+.slider:after {
             content: "ON";
             left: 8px;
             right: auto;
@@ -335,20 +335,20 @@
             .settings-container {
                 padding: 15px;
             }
-            
+
             .card-body {
                 padding: 20px;
             }
-            
+
             .action-buttons {
                 flex-direction: column;
             }
-            
+
             .btn {
                 width: 100%;
                 justify-content: center;
             }
-            
+
             .section-title {
                 font-size: 1.5rem;
             }
@@ -388,7 +388,9 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* Badge styles */
@@ -488,8 +490,10 @@
                         <div class="col-md-3 mb-2">
                             <select name="statut" class="form-control">
                                 <option value="">Tous les statuts</option>
-                                <option value="actif" {{ request('statut') === 'actif' ? 'selected' : '' }}>Actives</option>
-                                <option value="inactif" {{ request('statut') === 'inactif' ? 'selected' : '' }}>Inactives</option>
+                                <option value="actif" {{ request('statut') === 'actif' ? 'selected' : '' }}>Actives
+                                </option>
+                                <option value="inactif" {{ request('statut') === 'inactif' ? 'selected' : '' }}>Inactives
+                                </option>
                             </select>
                         </div>
                         <div class="col-md-3 mb-2">
@@ -512,7 +516,7 @@
                     <h3><i class="fas fa-list mr-2"></i>Liste des Info-Bulles</h3>
                 </div>
                 <div class="card-body">
-                    @if($infoBulles->count() > 0)
+                    @if ($infoBulles->count() > 0)
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead>
@@ -526,7 +530,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($infoBulles as $infoBulle)
+                                    @foreach ($infoBulles as $infoBulle)
                                         <tr>
                                             <td>{{ $loop->iteration }}</td>
                                             <td>
@@ -538,7 +542,7 @@
                                                 </div>
                                             </td>
                                             <td>
-                                                @if($infoBulle->is_active)
+                                                @if ($infoBulle->is_active)
                                                     <span class="badge badge-active">
                                                         <i class="fas fa-check-circle mr-1"></i>Active
                                                     </span>
@@ -556,38 +560,35 @@
                                             <td>
                                                 <div class="action-buttons">
                                                     <!-- Switch de statut -->
-                                                    <form action="{{ route('info-bulles.toggle-status', $infoBulle->id) }}" 
-                                                          method="POST" class="d-inline">
+                                                    <form action="{{ route('info-bulles.toggle-status', $infoBulle->id) }}"
+                                                        method="POST" class="d-inline">
                                                         @csrf
                                                         @method('PATCH')
                                                         <label class="switch">
-                                                            <input type="checkbox" 
-                                                                   {{ $infoBulle->is_active ? 'checked' : '' }}
-                                                                   onchange="this.form.submit()">
+                                                            <input type="checkbox"
+                                                                {{ $infoBulle->is_active ? 'checked' : '' }}
+                                                                onchange="this.form.submit()">
                                                             <span class="slider"></span>
                                                         </label>
                                                     </form>
 
                                                     <!-- Bouton Modifier -->
-                                                    <button class="btn btn-sm btn-primary edit-btn"
-                                                            data-toggle="modal" 
-                                                            data-target="#editInfoBulleModal"
-                                                            data-id="{{ $infoBulle->id }}"
-                                                            data-titre="{{ $infoBulle->titre }}"
-                                                            data-texte="{{ $infoBulle->texte }}"
-                                                            data-active="{{ $infoBulle->is_active }}"
-                                                            title="Modifier">
+                                                    <button class="btn btn-sm btn-primary edit-btn" data-toggle="modal"
+                                                        data-target="#editInfoBulleModal" data-id="{{ $infoBulle->id }}"
+                                                        data-titre="{{ $infoBulle->titre }}"
+                                                        data-texte="{{ $infoBulle->texte }}"
+                                                        data-active="{{ $infoBulle->is_active }}" title="Modifier">
                                                         <i class="fas fa-edit"></i>
                                                     </button>
 
                                                     <!-- Bouton Supprimer -->
-                                                    <form action="{{ route('info-bulles.destroy', $infoBulle->id) }}" 
-                                                          method="POST" class="d-inline">
+                                                    <form action="{{ route('info-bulles.destroy', $infoBulle->id) }}"
+                                                        method="POST" class="d-inline">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="btn btn-sm btn-danger"
-                                                                onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette info-bulle ?')"
-                                                                title="Supprimer">
+                                                            onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette info-bulle ?')"
+                                                            title="Supprimer">
                                                             <i class="fas fa-trash"></i>
                                                         </button>
                                                     </form>
@@ -621,7 +622,8 @@
     </section>
 
     <!-- Modal d'ajout -->
-    <div class="modal fade" id="addInfoBulleModal" tabindex="-1" role="dialog" aria-labelledby="addInfoBulleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="addInfoBulleModal" tabindex="-1" role="dialog"
+        aria-labelledby="addInfoBulleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -639,9 +641,8 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="add_titre">Titre de l'info-bulle *</label>
-                                    <input type="text" class="form-control" id="add_titre" name="titre" 
-                                           value="{{ old('titre') }}" required
-                                           placeholder="Ex: Guide d'utilisation">
+                                    <input type="text" class="form-control" id="add_titre" name="titre"
+                                        value="{{ old('titre') }}" required placeholder="Ex: Guide d'utilisation">
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -649,8 +650,10 @@
                                     <label class="d-block">Statut d'activation</label>
                                     <div class="switch-label">
                                         <label class="switch">
-                                            <input type="checkbox" id="add_is_active" name="is_active" value="1" 
-                                                   {{ old('is_active', true) ? 'checked' : '' }}>
+                                            <input type="hidden" name="is_active" value="0">
+                                            <input type="checkbox" id="add_is_active" name="is_active" value="1"
+                                                {{ old('is_active', true) ? 'checked' : '' }}>
+
                                             <span class="slider"></span>
                                         </label>
                                         <span class="switch-text" id="add_switch_text">
@@ -664,7 +667,7 @@
                         <div class="form-group">
                             <label for="add_texte">Contenu de l'info-bulle *</label>
                             <textarea class="form-control" id="add_texte" name="texte" rows="4" required
-                                      placeholder="Ex: Cette fonctionnalité vous permet de...">{{ old('texte') }}</textarea>
+                                placeholder="Ex: Cette fonctionnalité vous permet de...">{{ old('texte') }}</textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -681,7 +684,8 @@
     </div>
 
     <!-- Modal d'édition -->
-    <div class="modal fade" id="editInfoBulleModal" tabindex="-1" role="dialog" aria-labelledby="editInfoBulleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="editInfoBulleModal" tabindex="-1" role="dialog"
+        aria-labelledby="editInfoBulleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -750,25 +754,26 @@
             });
 
             // Gestion de l'édition - Remplir le modal avec les données
-            $('#editInfoBulleModal').on('show.bs.modal', function (event) {
+            $('#editInfoBulleModal').on('show.bs.modal', function(event) {
                 var button = $(event.relatedTarget);
                 var id = button.data('id');
                 var titre = button.data('titre');
                 var texte = button.data('texte');
                 var active = button.data('active');
-                
+
                 var modal = $(this);
                 modal.find('#edit_titre').val(titre);
                 modal.find('#edit_texte').val(texte);
                 modal.find('#edit_is_active').prop('checked', active);
                 modal.find('#edit_switch_text').text(active ? 'Activée' : 'Désactivée');
-                
+
                 // Mettre à jour l'action du formulaire
-                modal.find('#editInfoBulleForm').attr('action', "{{ route('info-bulles.update', ':id') }}".replace(':id', id));
+                modal.find('#editInfoBulleForm').attr('action', "{{ route('info-bulles.update', ':id') }}"
+                    .replace(':id', id));
             });
 
             // Réinitialiser le modal d'ajout quand il est fermé
-            $('#addInfoBulleModal').on('hidden.bs.modal', function () {
+            $('#addInfoBulleModal').on('hidden.bs.modal', function() {
                 $(this).find('form')[0].reset();
                 $('#add_is_active').prop('checked', true).trigger('change');
             });
