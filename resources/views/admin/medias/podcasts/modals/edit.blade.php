@@ -122,7 +122,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary bg-secondary" data-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-info">
+                    <button type="submit" class="btn btn-info bg-info">
                         <i class="fas fa-save"></i> Mettre à jour
                     </button>
                 </div>
