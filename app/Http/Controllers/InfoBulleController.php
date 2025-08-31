@@ -58,7 +58,7 @@ class InfoBulleController extends Controller
                 'insert_by' => Auth::id(),
                 'update_by' => Auth::id(),
             ]);
-            Alert::success('Succès', 'Info-bulle ajoutée avec succès.');
+            notify()->success('Succès', 'Info-bulle ajoutée avec succès.');
             return redirect()->route('info-bulles.index');
                 
         } catch (\Exception $e) {
@@ -90,7 +90,7 @@ class InfoBulleController extends Controller
                 'update_by' => Auth::id(),
             ]);
 
-            Alert::success('Succès', 'Info-bulle modifiée avec succès.');
+            notify()->success('Succès', 'Info-bulle modifiée avec succès.');
             
             return redirect()->route('info-bulles.index');
                 
@@ -113,7 +113,7 @@ class InfoBulleController extends Controller
                 'is_active' => !$infoBulle->is_active,
                 'update_by' => Auth::id(),
             ]);
-            Alert::success('Succès', 'Statut de l\'info-bulle modifié avec succès.');
+            notify()->success('Succès', 'Statut de l\'info-bulle modifié avec succès.');
 
             return redirect()->route('info-bulles.index');
                 
@@ -137,7 +137,7 @@ class InfoBulleController extends Controller
                 'update_by' => Auth::id(),
             ]);
 
-            Alert::success('Succès', 'Info-bulle supprimée avec succès.');
+            notify()->success('Succès', 'Info-bulle supprimée avec succès.');
 
             return redirect()->route('info-bulles.index');
                 

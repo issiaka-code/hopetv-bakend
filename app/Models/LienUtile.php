@@ -11,7 +11,7 @@ class LienUtile extends Model
 
     protected $table = 'liens_utiles';
 
-    protected $fillable = ['nom', 'lien', 'insert_by', 'update_by', 'is_deleted'];
+    protected $fillable = ['nom', 'lien', 'slug', 'insert_by', 'update_by', 'is_deleted'];
 
     // Relations
     public function insertedBy()

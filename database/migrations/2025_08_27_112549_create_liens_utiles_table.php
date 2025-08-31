@@ -11,7 +11,8 @@ return new class extends Migration
         Schema::create('liens_utiles', function (Blueprint $table) {
             $table->id();
             $table->string('nom');
-            $table->string('lien');
+            $table->string('lien')->unique();
+            $table->string('slug')->unique();
             $table->foreignId('insert_by')->constrained('users');
             $table->foreignId('update_by')->constrained('users');
             $table->boolean('is_deleted')->default(false);

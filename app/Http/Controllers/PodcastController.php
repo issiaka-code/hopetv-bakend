@@ -152,7 +152,7 @@ class PodcastController extends Controller
                 'update_by' => auth()->id(),
             ]);
 
-            Alert::success('Succès', 'Podcast créé avec succès');
+            notify()->success('Succès', 'Podcast ajouté avec succès.');
             return redirect()->route('podcasts.index');
         } catch (\Exception $e) {
             Log::error('Erreur lors de la création: ' . $e->getMessage());
@@ -268,8 +268,7 @@ class PodcastController extends Controller
             ]);
 
             DB::commit();
-
-            Alert::success('Succès', 'Podcast mis à jour avec succès');
+            notify()->success('Succès', 'Podcast mis à jour avec succès.');
             return redirect()->route('podcasts.index');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -299,7 +298,7 @@ class PodcastController extends Controller
             }
 
             DB::commit();
-            Alert::success('Succès', 'Podcast supprimé avec succès');
+            notify()->success('Succès', 'Podcast supprimé avec succès.');
             return redirect()->route('podcasts.index');
         } catch (\Exception $e) {
             DB::rollBack();

@@ -269,7 +269,7 @@
                                                 <i class="fas fa-upload mr-1"></i>Mettre à jour
                                             </button>
                                             @if ($param->logo)
-                                                <button type="button" class="btn btn-danger"
+                                                <button type="button" class="btn btn-danger bg-danger"
                                                     onclick="if(confirm('Supprimer le logo ?')) { document.getElementById('delete-logo-form').submit(); }">
                                                     <i class="fas fa-trash mr-1"></i>Supprimer
                                                 </button>
@@ -368,7 +368,7 @@
                                                 <i class="fas fa-save mr-1"></i>Mettre à jour
                                             </button>
 
-                                            <button type="button" class="btn btn-danger"
+                                            <button type="button" class="btn btn-danger bg-danger"
                                                 onclick="if(confirm('Supprimer tous les paramètres ?')) { document.getElementById('delete-param-form').submit(); }">
                                                 <i class="fas fa-trash mr-1"></i>Supprimer
                                             </button>

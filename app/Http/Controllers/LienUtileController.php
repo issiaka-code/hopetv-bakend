@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\LienUtile;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -30,57 +31,31 @@ class LienUtileController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('admin.liens-utiles.create');
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'nom' => 'required|string|max:255',
-            'lien' => 'required|url|max:500',
+            'lien' => 'required',
         ]);
 
         try {
             LienUtile::create([
                 'nom' => $validated['nom'],
                 'lien' => $validated['lien'],
+                'slug' => str_replace(' ','', $validated['lien']),
                 'insert_by' => Auth::id(),
                 'update_by' => Auth::id(),
             ]);
-
-            return redirect()->route('liens-utiles.index')
-                ->with('success', 'Lien utile ajouté avec succès.');
+            notify()->success('Succès', 'Lien utile ajouté avec succès.');
+            return redirect()->route('liens-utiles.index');
                 
         } catch (\Exception $e) {
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Erreur lors de l\'ajout du lien: ' . $e->getMessage());
         }
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        $lien = LienUtile::where('id', $id)->where('is_deleted', false)->firstOrFail();
-        return view('admin.liens-utiles.show', compact('lien'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        $lien = LienUtile::where('id', $id)->where('is_deleted', false)->firstOrFail();
-        return view('admin.liens-utiles.edit', compact('lien'));
     }
 
     /**
@@ -92,18 +67,18 @@ class LienUtileController extends Controller
         
         $validated = $request->validate([
             'nom' => 'required|string|max:255',
-            'lien' => 'required|url|max:500',
+            'lien' => 'required|max:500',
         ]);
 
         try {
             $lien->update([
                 'nom' => $validated['nom'],
                 'lien' => $validated['lien'],
+                'slug' => str_replace(' ','', $validated['lien']),
                 'update_by' => Auth::id(),
             ]);
-
-            return redirect()->route('liens-utiles.index')
-                ->with('success', 'Lien utile modifié avec succès.');
+            notify()->success('Succès', 'Lien utile modifié avec succès.');
+            return redirect()->route('liens-utiles.index');
                 
         } catch (\Exception $e) {
             return redirect()->back()
@@ -125,9 +100,8 @@ class LienUtileController extends Controller
                 'is_deleted' => true,
                 'update_by' => Auth::id(),
             ]);
-
-            return redirect()->route('liens-utiles.index')
-                ->with('success', 'Lien utile supprimé avec succès.');
+            notify()->success('Succès', 'Lien utile supprimé avec succès.');
+            return redirect()->route('liens-utiles.index');
                 
         } catch (\Exception $e) {
             return redirect()->back()

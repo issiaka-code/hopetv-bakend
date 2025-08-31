@@ -6,7 +6,9 @@
 <body>
     {{-- <div class="loader"></div> --}}
     <div id="app">
+
         <div class="main-wrapper main-wrapper-1">
+
             @include('admin.partials.header')
 
             @include('admin.partials.sidebarL')
@@ -15,14 +17,21 @@
 
                 @yield('content')
 
+                @include('notify::components.notify')
+
             </div>
+
             @include('admin.partials.footer')
+
         </div>
+
     </div>
-    @include('sweetalert::alert')
+    
 
     @include('admin.partials.script')
+   
     @stack('scripts')
+
 </body>
 
 </html>

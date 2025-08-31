@@ -166,8 +166,7 @@ class TemoignageController extends Controller
                 'insert_by' => auth()->id(),
                 'update_by' => auth()->id(),
             ]);
-
-            Alert::success('Succès', 'Témoignage créé avec succès');
+            notify()->success('Succès', 'Témoignage ajouté avec succès.');
             return redirect()->route('temoignages.index');
         } catch (\Exception $e) {
             Log::error('Erreur lors de la création: ' . $e->getMessage());
@@ -303,8 +302,7 @@ class TemoignageController extends Controller
             ]);
 
             DB::commit();
-
-            Alert::success('Succès', 'Témoignage mis à jour avec succès');
+            notify()->success('Succès', 'Témoignage mis à jour avec succès.');
             return redirect()->route('temoignages.index');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -336,7 +334,7 @@ class TemoignageController extends Controller
             }
 
             DB::commit();
-            Alert::success('Succès', 'Témoignage supprimé avec succès');
+            notify()->success('Succès', 'Témoignage supprimé avec succès.');
             return redirect()->route('temoignages.index');
         } catch (\Exception $e) {
             DB::rollBack();

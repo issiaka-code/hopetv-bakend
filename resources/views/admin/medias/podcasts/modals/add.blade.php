@@ -97,7 +97,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                        <button type="button" class="btn btn-secondary bg-secondary" data-dismiss="modal">Annuler</button>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-plus-circle"></i> Ajouter
                         </button>

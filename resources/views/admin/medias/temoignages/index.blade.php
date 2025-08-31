@@ -321,7 +321,8 @@
                 <div class="col-12">
                     <div class="d-flex justify-content-between align-items-center section-header">
                         <h2 class="section-title">Témoignages disponibles</h2>
-                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addTemoignageModal">
+                        <button type="button" class="btn btn-primary" data-toggle="modal"
+                            data-target="#addTemoignageModal">
                             <i class="fas fa-plus"></i> Ajouter un témoignage
                         </button>
                     </div>
@@ -342,8 +343,10 @@
                             <select name="type" class="form-control">
                                 <option value="">Tous</option>
                                 <option value="audio" {{ request('type') === 'audio' ? 'selected' : '' }}>Audio</option>
-                                <option value="video_file" {{ request('type') === 'video_file' ? 'selected' : '' }}>Fichiers vidéo</option>
-                                <option value="video_link" {{ request('type') === 'video_link' ? 'selected' : '' }}>Liens vidéo</option>
+                                <option value="video_file" {{ request('type') === 'video_file' ? 'selected' : '' }}>Fichiers
+                                    vidéo</option>
+                                <option value="video_link" {{ request('type') === 'video_link' ? 'selected' : '' }}>Liens
+                                    vidéo</option>
                                 <option value="pdf" {{ request('type') === 'pdf' ? 'selected' : '' }}>PDF</option>
                             </select>
                         </div>
@@ -353,7 +356,7 @@
                                 <i class="fas fa-filter py-2"></i> Filtrer
                             </button>
                         </div>
-                         <div class="col-md-2 my-1">
+                        <div class="col-md-2 my-1">
                             <a href="{{ route('temoignages.index') }}" class="btn btn-outline-secondary w-100">
                                 <i class="fas fa-sync py-2"></i> Réinitialiser
                             </a>
@@ -380,13 +383,15 @@
                                 <div class="card temoignage-card">
                                     <div class="temoignage-thumbnail-container">
                                         <div class="temoignage-thumbnail position-relative"
-                                            data-temoignage-url="{{ $thumbnail_url }}" data-temoignage-name="{{ $nom }}"
+                                            data-temoignage-url="{{ $thumbnail_url }}"
+                                            data-temoignage-name="{{ $nom }}"
                                             data-media-type="{{ $media_type }}">
 
                                             @if ($media_type === 'audio')
                                                 <div class="audio-thumbnail"><i class="fas fa-music"></i></div>
                                             @elseif ($media_type === 'video_link')
-                                                <iframe src="{{ $thumbnail_url }}" frameborder="0" allowfullscreen></iframe>
+                                                <iframe src="{{ $thumbnail_url }}" frameborder="0"
+                                                    allowfullscreen></iframe>
                                             @elseif ($media_type === 'pdf')
                                                 <div class="pdf-thumbnail"><i class="fas fa-file-pdf"></i></div>
                                             @else
@@ -398,7 +403,17 @@
                                             </div>
 
                                             <span class="badge badge-primary media-type-badge">
-                                                {{ ucfirst(str_replace('_', ' ', $media_type)) }}
+                                                {{ ucfirst(
+                                                    $media_type === 'audio'
+                                                        ? 'Audio'
+                                                        : ($media_type === 'pdf'
+                                                            ? 'PDF'
+                                                            : ($media_type === 'video_link'
+                                                                ? 'Lien vidéo'
+                                                                : ($media_type === 'video_file'
+                                                                    ? 'Fichier vidéo'
+                                                                    : $media_type))),
+                                                ) }}
                                             </span>
                                         </div>
                                     </div>
@@ -420,7 +435,8 @@
                                                     data-media-type="{{ $media_type }}">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
-                                                <button class="btn btn-sm btn-outline-primary edit-temoignage-btn mx-1 rounded"
+                                                <button
+                                                    class="btn btn-sm btn-outline-primary edit-temoignage-btn mx-1 rounded"
                                                     data-temoignage-id="{{ $id }}">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
@@ -471,7 +487,8 @@
             // ===== GESTION DU FORMULAIRE D'AJOUT =====
             $('input[name="media_type"]', '#addTemoignageForm').change(function() {
                 const selectedType = $(this).val();
-                $('#addAudioFileSection, #addVideoFileSection, #addVideoLinkSection, #addPdfFileSection').addClass('d-none');
+                $('#addAudioFileSection, #addVideoFileSection, #addVideoLinkSection, #addPdfFileSection')
+                    .addClass('d-none');
                 $('#addAudioFile, #addVideoFile, #addVideoLink, #addPdfFile').removeAttr('required');
 
                 if (selectedType === 'audio') {
@@ -496,14 +513,16 @@
 
             $('#addTemoignageModal').on('hidden.bs.modal', function() {
                 $('#addTemoignageForm')[0].reset();
-                $('#addAudioFile, #addVideoFile, #addPdfFile').next('.custom-file-label').html('Choisir un fichier');
+                $('#addAudioFile, #addVideoFile, #addPdfFile').next('.custom-file-label').html(
+                    'Choisir un fichier');
                 $('#addMediaTypeAudio').prop('checked', true).trigger('change');
             });
 
             // ===== GESTION DU FORMULAIRE D'ÉDITION =====
             $('input[name="media_type"]', '#editTemoignageForm').change(function() {
                 const selectedType = $(this).val();
-                $('#editAudioFileSection, #editVideoFileSection, #editVideoLinkSection, #editPdfFileSection').addClass('d-none');
+                $('#editAudioFileSection, #editVideoFileSection, #editVideoLinkSection, #editPdfFileSection')
+                    .addClass('d-none');
                 $('#editAudioFile, #editVideoFile, #editVideoLink, #editPdfFile').removeAttr('required');
 
                 if (selectedType === 'audio') {
@@ -544,14 +563,16 @@
                                 $('#editCurrentAudioName').text(data.media.url_fichier.split(
                                     '/').pop());
                                 $('#editCurrentAudio').show();
-                                $('#editCurrentVideo, #editCurrentLink, #editCurrentPdf').hide();
+                                $('#editCurrentVideo, #editCurrentLink, #editCurrentPdf')
+                            .hide();
                             } else if (mediaType === 'video') {
                                 $('#editMediaTypeVideoFile').prop('checked', true).trigger(
                                     'change');
                                 $('#editCurrentVideoName').text(data.media.url_fichier.split(
                                     '/').pop());
                                 $('#editCurrentVideo').show();
-                                $('#editCurrentAudio, #editCurrentLink, #editCurrentPdf').hide();
+                                $('#editCurrentAudio, #editCurrentLink, #editCurrentPdf')
+                            .hide();
                             } else if (mediaType === 'link') {
                                 $('#editMediaTypeVideoLink').prop('checked', true).trigger(
                                     'change');
@@ -559,14 +580,16 @@
                                 $('#editCurrentLinkValue').text(data.media.url_fichier);
                                 $('#editViewCurrentLink').attr('href', data.media.url_fichier);
                                 $('#editCurrentLink').show();
-                                $('#editCurrentAudio, #editCurrentVideo, #editCurrentPdf').hide();
+                                $('#editCurrentAudio, #editCurrentVideo, #editCurrentPdf')
+                                .hide();
                             } else if (mediaType === 'pdf') {
                                 $('#editMediaTypePdf').prop('checked', true).trigger(
                                     'change');
                                 $('#editCurrentPdfName').text(data.media.url_fichier.split(
                                     '/').pop());
                                 $('#editCurrentPdf').show();
-                                $('#editCurrentAudio, #editCurrentVideo, #editCurrentLink').hide();
+                                $('#editCurrentAudio, #editCurrentVideo, #editCurrentLink')
+                                    .hide();
                             }
                         }
                         $('#editTemoignageModal').modal('show');
@@ -586,8 +609,9 @@
                     'title') || '';
 
                 // Masquer tous les lecteurs et réinitialiser
-                $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer, #pdfViewerContainer').addClass(
-                    'd-none');
+                $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer, #pdfViewerContainer')
+                    .addClass(
+                        'd-none');
                 $('#modalAudioPlayer').attr('src', '').get(0).load();
                 $('#modalVideoPlayer').attr('src', '').get(0).load();
                 $('#modalIframePlayer').attr('src', '');
@@ -629,8 +653,9 @@
                 $('#modalPdfViewer').attr('src', '');
 
                 // Masquer tous les lecteurs
-                $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer, #pdfViewerContainer').addClass(
-                    'd-none');
+                $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer, #pdfViewerContainer')
+                    .addClass(
+                        'd-none');
 
                 // Vider les informations
                 $('#temoignageTitle, #temoignageDescription, #mediaTypeBadge').text('');

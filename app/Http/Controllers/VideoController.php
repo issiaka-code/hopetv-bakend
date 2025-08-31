@@ -137,12 +137,11 @@ class VideoController extends Controller
                 'insert_by' => auth()->id(),
                 'update_by' => auth()->id(),
             ]);
-
-            Alert::success('Succès', 'Vidéo créée avec succès');
+            notify()->success('Succès', 'Vidéo ajoutée avec succès.');
             return redirect()->route('videos.index');
         } catch (\Exception $e) {
             Log::error('Erreur lors de la création: ' . $e->getMessage());
-            Alert::error('Erreur', 'Impossible de créer la vidéo: ' . $e->getMessage());
+            notify()->error('Erreur', 'Impossible d\'ajouter la vidéo: ' . $e->getMessage());
             return back()->withInput();
         }
     }
@@ -235,13 +234,12 @@ class VideoController extends Controller
             ]);
 
             DB::commit();
-
-            Alert::success('Succès', 'Vidéo mise à jour avec succès');
+            notify()->success('Succès', 'Vidéo mise à jour avec succès.');
             return redirect()->route('videos.index');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Erreur lors de la mise à jour: ' . $e->getMessage());
-            Alert::error('Erreur', 'Impossible de mettre à jour la vidéo: ' . $e->getMessage());
+            notify()->error('Erreur', 'Impossible de mettre à jour la vidéo: ' . $e->getMessage());
             return back()->withInput();
         }
     }
@@ -266,7 +264,7 @@ class VideoController extends Controller
             }
 
             DB::commit();
-            Alert::success('Succès', 'Vidéo supprimée avec succès');
+            notify()->success('Succès', 'Vidéo supprimée avec succès.');
             return redirect()->route('videos.index');
         } catch (\Exception $e) {
             DB::rollBack();

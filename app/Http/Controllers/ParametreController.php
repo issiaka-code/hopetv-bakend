@@ -63,38 +63,13 @@ class ParametreController extends Controller
             }
 
             Parametre::create($data);
-            Alert::success('Paramètre créé avec succès', 'Succès');
-            return redirect()->route('parametres.index')
-                ->with('success', 'Paramètre créé avec succès.');
+            Alert::success('Succès', 'Paramètre créé avec succès.');
+            return redirect()->route('parametres.index');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Erreur lors de la création du paramètre: ' . $e->getMessage());
         }
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        $parametre = Parametre::where('id', $id)
-            ->where('is_deleted', false)
-            ->firstOrFail();
-
-        return view('admin.parametres.show', compact('parametre'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        $parametre = Parametre::where('id', $id)
-            ->where('is_deleted', false)
-            ->firstOrFail();
-
-        return view('admin.parametres.edit', compact('parametre'));
     }
 
     /**
@@ -143,7 +118,7 @@ class ParametreController extends Controller
             }
 
             $parametre->update($data);
-            Alert::success('Paramètre modifié avec succès.', 'Succès');
+            notify()->success('Succès', 'Paramètre modifié avec succès.');
             return redirect()->route('parametres.index');
         } catch (\Exception $e) {
             return redirect()->back()
@@ -167,7 +142,7 @@ class ParametreController extends Controller
                 'is_deleted' => true,
                 'update_by' => Auth::id(),
             ]);
-            Alert::success('Paramètre supprimé avec succès.', 'Succès');
+            notify()->success('Succès', 'Paramètre supprimé avec succès.');
             return redirect()->route('parametres.index');
         } catch (\Exception $e) {
             return redirect()->back()

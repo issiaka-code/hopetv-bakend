@@ -12,6 +12,7 @@
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
         "laravel/ui": "^4.6",
+        "mckenziearts/laravel-notify": "^2.7",
         "pbmedia/laravel-ffmpeg": "^8.7",
         "realrashid/sweet-alert": "^7.3"
     },

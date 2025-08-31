@@ -573,7 +573,7 @@
                                                     </form>
 
                                                     <!-- Bouton Modifier -->
-                                                    <button class="btn btn-sm btn-primary edit-btn" data-toggle="modal"
+                                                    <button class="btn btn-sm btn-outline-primary edit-btn" data-toggle="modal"
                                                         data-target="#editInfoBulleModal" data-id="{{ $infoBulle->id }}"
                                                         data-titre="{{ $infoBulle->titre }}"
                                                         data-texte="{{ $infoBulle->texte }}"
@@ -586,7 +586,7 @@
                                                         method="POST" class="d-inline">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button type="submit" class="btn btn-sm btn-danger"
+                                                        <button type="submit" class="btn btn-sm btn-danger bg-danger" 
                                                             onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette info-bulle ?')"
                                                             title="Supprimer">
                                                             <i class="fas fa-trash"></i>
