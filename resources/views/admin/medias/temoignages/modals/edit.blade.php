@@ -71,9 +71,6 @@
 
                             <div id="editCurrentAudio" class="mt-2">
                                 <small>Fichier actuel: <span id="editCurrentAudioName"></span></small>
-                                <button type="button" class="btn btn-sm btn-info ml-2" id="editPlayCurrentAudio">
-                                    <i class="fa fa-play"></i> Écouter
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -95,9 +92,6 @@
 
                             <div id="editCurrentVideo" class="mt-2">
                                 <small>Fichier actuel: <span id="editCurrentVideoName"></span></small>
-                                <button type="button" class="btn btn-sm btn-info ml-2" id="editViewCurrentVideo">
-                                    <i class="fa fa-eye"></i> Voir
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -117,9 +111,6 @@
 
                             <div id="editCurrentLink" class="mt-2">
                                 <small>Lien actuel: <span id="editCurrentLinkValue"></span></small>
-                                <a href="#" target="_blank" class="btn btn-sm btn-info ml-2" id="editViewCurrentLink">
-                                    <i class="fa fa-external-link-alt"></i> Ouvrir
-                                </a>
                             </div>
                         </div>
                     </div>
@@ -141,9 +132,6 @@
 
                             <div id="editCurrentPdf" class="mt-2">
                                 <small>Fichier actuel: <span id="editCurrentPdfName"></span></small>
-                                <a href="javascript:void(0);" class="btn btn-sm btn-info ml-2" id="editViewCurrentPdf">
-                                    <i class="fa fa-eye"></i> Voir
-                                </a>
                             </div>
                         </div>
                     </div>

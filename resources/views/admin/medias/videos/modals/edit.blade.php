@@ -64,9 +64,6 @@
 
                                 <div id="editCurrentVideo" class="mt-2">
                                     <small>Fichier actuel: <span id="editCurrentVideoName"></span></small>
-                                    <button type="button" class="btn btn-sm btn-info ml-2" id="editViewCurrentVideo">
-                                        <i class="fa fa-eye"></i> Voir
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -86,10 +83,6 @@
 
                                 <div id="editCurrentLink" class="mt-2">
                                     <small>Lien actuel: <span id="editCurrentLinkValue"></span></small>
-                                    <a href="#" target="_blank" class="btn btn-sm btn-info ml-2"
-                                        id="editViewCurrentLink">
-                                        <i class="fa fa-external-link-alt"></i> Voir
-                                    </a>
                                 </div>
                             </div>
                         </div>
