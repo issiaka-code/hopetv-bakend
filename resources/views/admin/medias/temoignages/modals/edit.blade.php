@@ -141,7 +141,7 @@
 
                             <div id="editCurrentPdf" class="mt-2">
                                 <small>Fichier actuel: <span id="editCurrentPdfName"></span></small>
-                                <a href="javascript:void(0);" target="_blank" class="btn btn-sm btn-info ml-2" id="editViewCurrentPdf">
+                                <a href="javascript:void(0);" class="btn btn-sm btn-info ml-2" id="editViewCurrentPdf">
                                     <i class="fa fa-eye"></i> Voir
                                 </a>
                             </div>
