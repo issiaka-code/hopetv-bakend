@@ -6,9 +6,9 @@
         <div class="sidebar-brand">
             <a href="{{ route('dashboard') }}" class="d-flex align-items-center justify-content-around">
                 <img src="{{ $parametre && $parametre->logo ? asset('storage/' . $parametre->logo) : asset('assets/img/logo.png') }}"
-                    alt="{{ config('app.name') }}" class="header-logo rounded" />
+                    alt="{{ config('app.name') }}" class="header-logo rounded" style="width: 50px; height: 50px;" />
                 <span class="logo-name">
-                    <small>{{ $parametre ? $parametre->nom_site : config('app.name') }}</small>
+                    <small style="font-size: 12px;">{{ $parametre ? $parametre->nom_site : config('app.name') }}</small>
                 </span>
             </a>
         </div>
