@@ -4,7 +4,7 @@
 <div class="main-sidebar sidebar-style-2">
     <aside id="sidebar-wrapper">
         <div class="sidebar-brand">
-            <a href="{{ route('dashboard') }}">
+            <a href="{{ route('dashboard') }}" class="d-flex align-items-center justify-content-around">
                 <img src="{{ $parametre && $parametre->logo ? asset('storage/' . $parametre->logo) : asset('assets/img/logo.png') }}"
                     alt="{{ config('app.name') }}" class="header-logo rounded" />
                 <span class="logo-name">
