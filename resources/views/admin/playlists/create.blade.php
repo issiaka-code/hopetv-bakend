@@ -1,6 +1,6 @@
 @extends('admin.master')
 
-@section('title', 'Modifier la Playlist')
+@section('title', 'Créer une Playlist')
 
 @push('styles')
     <style>
@@ -315,7 +315,6 @@
 
         .playlist-video-item.active .video-number {
             background: #4e73df;
-            color: white;
         }
 
         .playlist-video-info {
@@ -430,14 +429,6 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(78, 115, 223, 0.3);
         }
-
-        .edit-playlist-header {
-            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-        }
     </style>
 @endpush
 
@@ -462,7 +453,7 @@
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h2 class="section-title">Modifier la playlist</h2>
+                        <h2 class="section-title">Créer une nouvelle playlist</h2>
                         <a href="{{ route('playlists.index') }}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left"></i> Retour
                         </a>
@@ -472,14 +463,9 @@
 
             <div class="row">
                 <div class="col-12">
-                    <div class="edit-playlist-header">
-                        <h3><i class="fas fa-edit"></i> {{ $playlist->nom }}</h3>
-                        <p class="mb-0">{{ $playlist->description ?: 'Aucune description' }}</p>
-                    </div>
-
                     <div class="card">
                         <div class="card-header">
-                            <h4>Assistant de modification de playlist</h4>
+                            <h4>Assistant de création de playlist</h4>
                         </div>
                         <div class="card-body">
                             <div id="wizard_playlist" role="application" class="wizard clearfix">
@@ -510,10 +496,8 @@
                                 </div>
 
                                 <!-- Form Content -->
-                                <form id="playlistForm" action="{{ route('playlists.update', $playlist->id) }}"
-                                    method="POST">
+                                <form id="playlistForm" action="{{ route('playlists.store') }}" method="POST">
                                     @csrf
-                                    @method('PUT')
                                     <div class="content clearfix">
                                         <!-- Étape 1: Informations de la playlist -->
                                         <section id="step-1" class="body current" aria-hidden="false">
@@ -524,42 +508,37 @@
                                                     <div class="form-group">
                                                         <label for="nom">Nom de la playlist *</label>
                                                         <input type="text" class="form-control" id="nom"
-                                                            name="nom" placeholder="Ex: Playlist du matin"
-                                                            value="{{ old('nom', $playlist->nom) }}" required>
+                                                            name="nom" placeholder="Ex: Playlist du matin" required>
                                                     </div>
 
                                                     <div class="form-group">
                                                         <label for="description">Description</label>
                                                         <textarea class="form-control" id="description" name="description" rows="4"
-                                                            placeholder="Décrivez le contenu ou l'objectif de cette playlist">{{ old('description', $playlist->description) }}</textarea>
+                                                            placeholder="Décrivez le contenu ou l'objectif de cette playlist"></textarea>
                                                     </div>
 
                                                     <div class="form-group">
                                                         <label for="etat">Etat de la playlist</label>
                                                         <select class="form-control" id="etat" name="etat">
-                                                            <option value="1" {{ $playlist->etat ? 'selected' : '' }}>
-                                                                Actif</option>
-                                                            <option value="0" {{ !$playlist->etat ? 'selected' : '' }}>
-                                                                Inactif</option>
+                                                            <option value="1">Actif</option>
+                                                            <option value="0">Inactif</option>
                                                         </select>
                                                     </div>
 
                                                     <div class="form-group">
                                                         <label for="date_debut">Date de début de lecture *</label>
                                                         <input type="datetime-local" class="form-control" id="date_debut"
-                                                            name="date_debut"
-                                                            value="{{ old('date_debut', $playlist->date_debut->format('Y-m-d\TH:i')) }}"
-                                                            required>
+                                                            name="date_debut" required>
                                                     </div>
                                                 </div>
 
                                                 <div class="col-md-4">
                                                     <div class="alert alert-info">
                                                         <h6><i class="fas fa-info-circle"></i> Informations</h6>
-                                                        <p class="mb-2">Cette étape permet de modifier les informations de
+                                                        <p class="mb-2">Cette étape permet de définir les informations de
                                                             base de votre playlist.</p>
-                                                        <small class="text-dark">Les vidéos actuelles sont conservées
-                                                            jusqu'à modification.</small>
+                                                        <small class="text-dark">Vous pourrez sélectionner les vidéos à
+                                                            l'étape suivante.</small>
                                                     </div>
                                                 </div>
                                             </div>
@@ -582,35 +561,17 @@
 
                                             <div class="video-selection-grid" id="videosGrid">
                                                 @foreach ($videos as $video)
-                                                    @php
-                                                        $isSelected = $playlist->items->contains(
-                                                            'video_id',
-                                                            $video->id,
-                                                        );
-                                                    @endphp
-                                                    <div class="video-card {{ $isSelected ? 'selected' : '' }}"
-                                                        data-video-id="{{ $video->id }}"
+                                                    <div class="video-card" data-video-id="{{ $video->id }}"
                                                         data-video-title="{{ $video->nom }}"
                                                         data-video-duration="{{ $video->duree ?? '00:00:00' }}"
                                                         data-video-url="{{ asset('storage/' . $video->media->url_fichier ?? '') }}">
-                                                        <div class="video-thumbnail"
-                                                            style="position: relative; height: 150px; overflow: hidden; border-radius: 8px; background: #000; margin-bottom: 10px;">
-                                                            <video style="width: 100%; height: 100%; object-fit: cover;"
-                                                                preload="metadata" onloadeddata="this.currentTime = 10">
-                                                                <source
-                                                                    src="{{ asset('storage/' . $video->media->url_fichier ?? '') }}#t=10"
-                                                                    type="video/mp4">
-                                                            </video>
-                                                            <div class="play-overlay"
-                                                                style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 2rem; opacity: 0.8;">
-                                                                <i class="fas fa-play-circle"></i>
-                                                            </div>
-                                                        </div>
-                                                        <div class="selection-order {{ $isSelected ? '' : 'hidden' }}">
-                                                            @if ($isSelected)
-                                                                {{ $playlist->items->where('video_id', $video->id)->first()->position }}
-                                                            @endif
-                                                        </div>
+                                                        <video controls controlsList="nodownload">
+                                                            <source
+                                                                src="{{ asset('storage/' . $video->media->url_fichier ?? '') }}"
+                                                                type="video/mp4">
+                                                            Votre navigateur ne supporte pas la lecture vidéo.
+                                                        </video>
+                                                        <div class="selection-order hidden"></div>
                                                         <div class="d-flex align-items-center mb-2">
                                                             <i class="fas fa-play-circle text-primary mr-2"></i>
                                                             <h6 class="mb-0">{{ Str::limit($video->nom, 30) }}</h6>
@@ -626,8 +587,7 @@
                                                                 <input type="checkbox"
                                                                     class="custom-control-input video-checkbox"
                                                                     id="video_{{ $video->id }}"
-                                                                    value="{{ $video->id }}"
-                                                                    {{ $isSelected ? 'checked' : '' }}>
+                                                                    value="{{ $video->id }}">
                                                                 <label class="custom-control-label"
                                                                     for="video_{{ $video->id }}"></label>
                                                             </div>
@@ -678,7 +638,6 @@
                                                         <div class="col-md-6">
                                                             <p><strong>Nombre de vidéos:</strong> <span
                                                                     id="preview-count"></span></p>
-                                                            <p><strong>État:</strong> <span id="preview-etat"></span></p>
                                                         </div>
                                                     </div>
                                                     <p><strong>Description:</strong> <span id="preview-description"></span>
@@ -702,6 +661,7 @@
                                                 </div>
                                             </div>
 
+
                                             <!-- Champs cachés pour la soumission -->
                                             <input type="hidden" name="selected_videos" id="selectedVideosInput">
                                         </section>
@@ -718,7 +678,7 @@
                                             </button>
                                             <button type="submit" id="finishBtn"
                                                 class="btn btn-success bg-success hidden">
-                                                <i class="fas fa-save"></i> Mettre à jour la playlist
+                                                <i class="fas fa-check"></i> Créer la playlist
                                             </button>
                                         </div>
                                     </div>
@@ -748,7 +708,7 @@
                     <div class="row">
                         <div class="col-md-8">
                             <div class="video-player-container">
-                                <video id="modalVideoPlayer" controls controlsList="nodownload">
+                                <video id="modalVideoPlayer" class="p-4" controls controlsList="nodownload">
                                     <source src="" type="video/mp4">
                                     Votre navigateur ne supporte pas la lecture vidéo.
                                 </video>
@@ -771,6 +731,9 @@
                     <button type="button" class="btn btn-secondary bg-secondary" data-dismiss="modal">
                         <i class="fas fa-times"></i> Fermer
                     </button>
+                    <button type="button" class="btn btn-primary" id="backToEditBtn">
+                        <i class="fas fa-edit"></i> Modifier la playlist
+                    </button>
                 </div>
             </div>
         </div>
@@ -785,17 +748,6 @@
             let selectedVideos = [];
             let sortable;
             let currentVideoIndex = 0;
-
-            // Initialiser les vidéos sélectionnées depuis la playlist existante
-            @foreach ($playlist->items as $item)
-                selectedVideos.push({
-                    id: '{{ $item->video->id }}',
-                    title: '{{ addslashes($item->video->nom) }}',
-                    duration: '{{ $item->duree_video ?? '00:00:00' }}',
-                    url: '{{ asset('storage/' . $item->video->media->url_fichier ?? '') }}',
-                    order: {{ $item->position }}
-                });
-            @endforeach
 
             // Navigation du wizard
             function showStep(step) {
@@ -918,7 +870,7 @@
                 });
             });
 
-            // Mise à jour de l'ordre de sélection
+            // Mise à jour de l'ordre de sélection - CORRIGÉ
             function updateSelectionOrder() {
                 // D'abord, masquer tous les badges d'ordre
                 $('.video-card .selection-order').addClass('hidden');
@@ -955,24 +907,24 @@
 
                 selectedVideos.forEach((video, index) => {
                     const item = `
-                    <div class="selected-video-item" data-video-id="${video.id}">
-                        <div class="drag-handle">
-                            <i class="fas fa-grip-vertical"></i>
-                        </div>
-                        <div class="video-info">
-                            <div class="video-title">${video.title}</div>
-                            <div class="video-duration">
-                                <i class="fas fa-clock"></i> ${video.duration}
+                        <div class="selected-video-item" data-video-id="${video.id}">
+                            <div class="drag-handle">
+                                <i class="fas fa-grip-vertical"></i>
                             </div>
+                            <div class="video-info">
+                                <div class="video-title">${video.title}</div>
+                                <div class="video-duration">
+                                    <i class="fas fa-clock"></i> ${video.duration}
+                                </div>
+                            </div>
+                            <div class="video-order-number">
+                                <span class="badge badge-primary">#${index + 1}</span>
+                            </div>
+                            <button type="button" class="remove-video" data-video-id="${video.id}">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
-                        <div class="video-order-number">
-                            <span class="badge badge-primary">#${video.order}</span>
-                        </div>
-                        <button type="button" class="remove-video" data-video-id="${video.id}">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                `;
+                    `;
                     $list.append(item);
                 });
 
@@ -1003,10 +955,10 @@
                     }
                 });
                 selectedVideos = newOrder;
-                updateSelectionOrder();
+                updateSelectionOrder(); // Mettre à jour aussi les badges sur les cards
             }
 
-            // Suppression d'une vidéo de la liste
+            // Suppression d'une vidéo de la liste - CORRIGÉ
             $(document).on('click', '.remove-video', function() {
                 const videoId = $(this).data('video-id');
 
@@ -1019,7 +971,7 @@
 
                 // Mettre à jour l'affichage
                 updateSortableList();
-                updateSelectionOrder();
+                updateSelectionOrder(); // IMPORTANT: mise à jour des numéros d'ordre
                 updateSelectedCount();
             });
 
@@ -1029,23 +981,22 @@
                 $('#preview-description').text($('#description').val() || 'Aucune description');
                 $('#preview-date').text(formatDateTime($('#date_debut').val()));
                 $('#preview-count').text(selectedVideos.length);
-                $('#preview-etat').text($('#etat').val() == 1 ? 'Actif' : 'Inactif');
 
                 const $previewList = $('#previewVideosList');
                 $previewList.empty();
 
                 selectedVideos.forEach((video, index) => {
                     const item = `
-                    <div class="preview-video-item">
-                        <div class="video-order">${video.order}</div>
-                        <div class="video-info">
-                            <div class="video-title">${video.title}</div>
-                            <div class="video-duration">
-                                <i class="fas fa-clock"></i> ${video.duration}
+                        <div class="preview-video-item">
+                            <div class="video-order">${index + 1}</div>
+                            <div class="video-info">
+                                <div class="video-title">${video.title}</div>
+                                <div class="video-duration">
+                                    <i class="fas fa-clock"></i> ${video.duration}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
+                    `;
                     $previewList.append(item);
                 });
 
@@ -1080,16 +1031,16 @@
 
                 selectedVideos.forEach((video, index) => {
                     const item = `
-                    <div class="playlist-video-item ${index === currentVideoIndex ? 'active' : ''}" data-index="${index}">
-                        <div class="video-number">${video.order}</div>
-                        <div class="playlist-video-info">
-                            <div class="playlist-video-title">${video.title}</div>
-                            <div class="playlist-video-duration">
-                                <i class="fas fa-clock"></i> ${video.duration}
-                            </div>
-                        </div>
+            <div class="playlist-video-item ${index === currentVideoIndex ? 'active' : ''}" data-index="${index}">
+                <div class="video-number">${index + 1}</div>
+                <div class="playlist-video-info">
+                    <div class="playlist-video-title">${video.title}</div>
+                    <div class="playlist-video-duration">
+                        <i class="fas fa-clock"></i> ${video.duration}
                     </div>
-                `;
+                </div>
+            </div>
+        `;
                     $container.append(item);
                 });
             }
@@ -1111,9 +1062,9 @@
 
                 // Mettre à jour le titre du modal
                 $('#videoPlayerModalLabel').html(`
-                <i class="fas fa-play-circle"></i> 
-                ${video.title} (${index + 1}/${selectedVideos.length})
-            `);
+        <i class="fas fa-play-circle"></i> 
+        ${video.title} (${index + 1}/${selectedVideos.length})
+    `);
 
                 // Mettre à jour l'état actif dans la playlist
                 $('.playlist-video-item').removeClass('active');
@@ -1134,6 +1085,7 @@
                 if (currentVideoIndex < selectedVideos.length - 1) {
                     loadVideoInModal(currentVideoIndex + 1);
                 } else {
+                    // Si c'est la dernière vidéo, fermer le modal
                     $('#videoPlayerModal').modal('hide');
                 }
             });
@@ -1177,14 +1129,18 @@
                     return false;
                 }
 
+                // S'assurer que les données sont à jour
                 $('#selectedVideosInput').val(JSON.stringify(selectedVideos));
                 return true;
             });
 
             // Initialiser la première étape
             showStep(1);
-            updateSelectedCount();
-            updateSelectionOrder();
+
+            // Définir la date par défaut à maintenant
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            $('#date_debut').val(now.toISOString().slice(0, 16));
         });
     </script>
 @endpush
