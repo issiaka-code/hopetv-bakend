@@ -295,6 +295,7 @@
                         <div class="empty-state">
                             <i class="fas fa-link fa-4x text-muted mb-3"></i>
                             <h4 class="text-muted">Aucun lien disponible</h4>
+                            <p class="text-muted">Commencez par ajouter votre premier lien utile.</p>
                         </div>
                     </div>
                     @endforelse

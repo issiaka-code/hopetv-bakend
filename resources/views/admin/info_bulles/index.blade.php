@@ -589,9 +589,6 @@
                             <i class="fas fa-comment-dots fa-3x text-muted mb-3"></i>
                             <h5 class="text-muted">Aucune info-bulle configurée</h5>
                             <p class="text-muted">Commencez par ajouter votre première info-bulle.</p>
-                            <button class="btn btn-primary" data-toggle="modal" data-target="#addInfoBulleModal">
-                                <i class="fas fa-plus mr-2"></i>Ajouter une info-bulle
-                            </button>
                         </div>
                     @endif
                 </div>
