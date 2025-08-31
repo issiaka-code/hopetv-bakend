@@ -39,13 +39,12 @@ Route::middleware('auth')->group(function () {
     Route::resource('videos', VideoController::class);
     Route::resource('podcasts', PodcastController::class);
     Route::resource('temoignages', TemoignageController::class);
-    Route::resource('playlists', PlaylistController::class);
-    Route::resource('playlist-items', PlaylistItemController::class);
+    Route::resource('playlists', PlaylistController::class)->except(['show']);
+    Route::get('playlists/{id}/show', [PlaylistController::class, 'show'])->name('playlists.show');
     Route::resource('info-bulles', InfoBulleController::class);
     Route::resource('parametres', ParametreController::class);
     Route::resource('liens-utiles', LienUtileController::class);
     Route::patch('/{id}/toggle-status', [InfoBulleController::class, 'toggleStatus'])->name('info-bulles.toggle-status');
-
 });
 
 require __DIR__ . '/auth.php';

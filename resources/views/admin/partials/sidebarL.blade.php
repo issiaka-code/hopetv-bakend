@@ -45,11 +45,16 @@
             <!-- Section Programmation -->
             <li class="menu-header">Programmation et Contenu</li>
 
-            <li class="{{ Route::is('playlists.*') ? 'active' : '' }}">
-                <a href="{{ route('playlists.index') }}" class="nav-link">
+            <li class="dropdown {{ Route::is('playlists.*') ? 'active' : '' }}">
+                <a href="#" class="menu-toggle nav-link has-dropdown">
                     <i data-feather="list"></i><span>Playlists</span>
                 </a>
+                <ul class="dropdown-menu">
+                    <li><a class="nav-link {{ Route::is('playlists.index') ? 'active' : '' }}" href="{{ route('playlists.index') }}">Toutes les playlists</a></li>
+                    <li><a class="nav-link {{ Route::is('playlists.create') ? 'active' : '' }}"" href="{{ route('playlists.create') }}">Créer une playlist</a></li>
+                </ul>
             </li>
+
             <li class="{{ Route::is('info-bulles.*') ? 'active' : '' }}">
                 <a href="{{ route('info-bulles.index') }}" class="nav-link">
                     <i data-feather="info"></i><span>Info-bulles</span>

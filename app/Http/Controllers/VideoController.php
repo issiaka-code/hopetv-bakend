@@ -58,7 +58,7 @@ class VideoController extends Controller
                     $thumbnailUrl = $rawUrl;
                 }
             } elseif ($isVideoFile) {
-                $thumbnailUrl = asset('storage/' . $video->media->url_fichier);
+                $thumbnailUrl = c;
             }
 
             return (object)[
@@ -77,74 +77,74 @@ class VideoController extends Controller
         ]);
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'nom' => 'required|string|max:255',
-            'description' => 'required|string',
-            'video_type' => 'required|in:file,link',
-        ]);
+        public function store(Request $request)
+        {
+            $request->validate([
+                'nom' => 'required|string|max:255',
+                'description' => 'required|string',
+                'video_type' => 'required|in:file,link',
+            ]);
 
-        try {
-            if ($request->video_type === 'file') {
-                $request->validate([
-                    'fichier_video' => 'required|file|mimes:mp4,avi,mov,wmv,flv,mkv,webm|max:1024000',
+            try {
+                if ($request->video_type === 'file') {
+                    $request->validate([
+                        'fichier_video' => 'required|file|mimes:mp4,avi,mov,wmv,flv,mkv,webm|max:1024000',
+                    ]);
+
+                    $file = $request->file('fichier_video');
+                    $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                    $uniqueName = $filename . '_' . now()->format('Ymd_His') . '.mp4';
+
+                    // Stockage temporaire
+                    $tempPath = $file->storeAs('temp/videos', "tmp_{$uniqueName}");
+
+                    // Traitement avec FFmpeg
+                    FFMpeg::fromDisk('local')
+                        ->open($tempPath)
+                        ->export()
+                        ->toDisk('public')
+                        ->inFormat(new \FFMpeg\Format\Video\X264('aac', 'libx264'))
+                        ->resize(1280, 720)
+                        ->save('videos/' . $uniqueName);
+
+                    // Nettoyage du fichier temporaire
+                    Storage::disk('local')->delete($tempPath);
+
+                    $filePath = 'videos/' . $uniqueName;
+                } elseif ($request->video_type === 'link') {
+                    $request->validate([
+                        'lien_video' => 'required|url',
+                    ]);
+                    $filePath = $request->lien_video;
+                }
+
+                // Déterminer le type pour la base de données
+                $type = $request->video_type === 'file' ? 'video' : 'link';
+
+                // Créer l'enregistrement média
+                $media = Media::create([
+                    'url_fichier' => $filePath,
+                    'type' => $type,
+                    'insert_by' => auth()->id(),
+                    'update_by' => auth()->id(),
                 ]);
 
-                $file = $request->file('fichier_video');
-                $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                $uniqueName = $filename . '_' . now()->format('Ymd_His') . '.mp4';
-
-                // Stockage temporaire
-                $tempPath = $file->storeAs('temp/videos', "tmp_{$uniqueName}");
-
-                // Traitement avec FFmpeg
-                FFMpeg::fromDisk('local')
-                    ->open($tempPath)
-                    ->export()
-                    ->toDisk('public')
-                    ->inFormat(new \FFMpeg\Format\Video\X264('aac', 'libx264'))
-                    ->resize(1280, 720)
-                    ->save('videos/' . $uniqueName);
-
-                // Nettoyage du fichier temporaire
-                Storage::disk('local')->delete($tempPath);
-
-                $filePath = 'videos/' . $uniqueName;
-            } elseif ($request->video_type === 'link') {
-                $request->validate([
-                    'lien_video' => 'required|url',
+                // Créer la vidéo
+                Video::create([
+                    'id_media' => $media->id,
+                    'nom' => $request->nom,
+                    'description' => $request->description,
+                    'insert_by' => auth()->id(),
+                    'update_by' => auth()->id(),
                 ]);
-                $filePath = $request->lien_video;
+                notify()->success('Succès', 'Vidéo ajoutée avec succès.');
+                return redirect()->route('videos.index');
+            } catch (\Exception $e) {
+                Log::error('Erreur lors de la création: ' . $e->getMessage());
+                notify()->error('Erreur', 'Impossible d\'ajouter la vidéo: ' . $e->getMessage());
+                return back()->withInput();
             }
-
-            // Déterminer le type pour la base de données
-            $type = $request->video_type === 'file' ? 'video' : 'link';
-
-            // Créer l'enregistrement média
-            $media = Media::create([
-                'url_fichier' => $filePath,
-                'type' => $type,
-                'insert_by' => auth()->id(),
-                'update_by' => auth()->id(),
-            ]);
-
-            // Créer la vidéo
-            Video::create([
-                'id_media' => $media->id,
-                'nom' => $request->nom,
-                'description' => $request->description,
-                'insert_by' => auth()->id(),
-                'update_by' => auth()->id(),
-            ]);
-            notify()->success('Succès', 'Vidéo ajoutée avec succès.');
-            return redirect()->route('videos.index');
-        } catch (\Exception $e) {
-            Log::error('Erreur lors de la création: ' . $e->getMessage());
-            notify()->error('Erreur', 'Impossible d\'ajouter la vidéo: ' . $e->getMessage());
-            return back()->withInput();
         }
-    }
 
     public function edit(Video $video)
     {

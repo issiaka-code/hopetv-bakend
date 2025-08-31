@@ -8,12 +8,13 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('playlists', function (Blueprint $table) {
+        Schema::create('playlist_items', function (Blueprint $table) {
             $table->id();
-            $table->string('nom');
-            $table->text('description');
-            $table->dateTime('date_debut');
-            $table->foreignId('id_user')->constrained('users');
+            $table->foreignId('id_playlist')->constrained('playlists');
+            $table->foreignId('id_video')->constrained('videos');
+            $table->time('duree_video')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->integer('position');
             $table->foreignId('insert_by')->constrained('users');
             $table->foreignId('update_by')->constrained('users');
             $table->boolean('is_deleted')->default(false);
@@ -23,6 +24,6 @@ return new class extends Migration
 
     public function down()
     {
-        Schema::dropIfExists('playlists');
+        Schema::dropIfExists('playlist_items');
     }
 };
