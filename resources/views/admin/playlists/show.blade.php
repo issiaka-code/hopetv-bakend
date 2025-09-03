@@ -180,7 +180,8 @@
             position: relative;
             width: 100%;
             height: 0;
-            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            padding-bottom: 56.25%;
+            /* 16:9 Aspect Ratio */
             margin-bottom: 20px;
         }
 
@@ -466,7 +467,7 @@
                 </div>
 
             </div>
-        </div>  
+        </div>
     </div>
 @endsection
 
@@ -476,11 +477,13 @@
             // Variables pour la gestion de la playlist
             let currentVideoIndex = 0;
             let isAutoplayEnabled = false;
-            const playlistItems = document.querySelectorAll('.playlist-item');
             const videoPlayer = document.getElementById('videoPlayer');
+            let videoPlayerInstance = null;
 
             // Récupération des données via les attributs data- des éléments HTML
+            const playlistItems = document.querySelectorAll('.playlist-item');
             const videoItems = [];
+            
             playlistItems.forEach(item => {
                 videoItems.push({
                     id: item.dataset.videoId,
@@ -500,7 +503,6 @@
             const nextButton = document.getElementById('nextVideo');
             const progressBar = document.getElementById('playlistProgress');
             const progressText = document.getElementById('progressText');
-            const toggleAutoplayButton = document.getElementById('toggleAutoplay');
 
             // Initialiser le lecteur avec la première vidéo
             if (videoItems.length > 0) {
@@ -516,11 +518,11 @@
 
                 // Mettre à jour l'interface
                 currentVideoTitle.innerHTML = `<i class="fas fa-play-circle"></i> En cours: ${video.title}`;
-                
+
                 // Configurer la source vidéo
                 videoPlayer.innerHTML = `<source src="${video.url}" type="video/mp4">`;
                 videoPlayer.load();
-                
+
                 progressBar.style.width = `${((index + 1) / videoItems.length) * 100}%`;
                 progressText.textContent = `Video ${index + 1} sur ${videoItems.length}`;
 
@@ -536,7 +538,7 @@
                 // Désactiver/activer les boutons de navigation
                 prevButton.disabled = index === 0;
                 nextButton.disabled = index === videoItems.length - 1;
-                
+
                 // Lire automatiquement la vidéo
                 if (isAutoplayEnabled) {
                     const playPromise = videoPlayer.play();
@@ -568,20 +570,6 @@
                 }
             });
 
-            toggleAutoplayButton.addEventListener('click', function() {
-                isAutoplayEnabled = !isAutoplayEnabled;
-                this.innerHTML = isAutoplayEnabled ?
-                    '<i class="fas fa-pause"></i> Désactiver lecture auto' :
-                    '<i class="fas fa-play"></i> Lecture automatique';
-                this.classList.toggle('btn-success', isAutoplayEnabled);
-                this.classList.toggle('btn-primary', !isAutoplayEnabled);
-                
-                // Si on active la lecture auto et qu'une vidéo est chargée, la lire
-                if (isAutoplayEnabled && videoPlayer.src) {
-                    videoPlayer.play();
-                }
-            });
-
             // Clic sur un élément de la playlist
             playlistItems.forEach((item, index) => {
                 item.addEventListener('click', function() {
@@ -589,15 +577,47 @@
                 });
             });
 
-            // Réinitialiser la vidéo lorsque le modal est fermé
+            // CORRECTION : Arrêter complètement la vidéo quand le modal est fermé
             $('#playPlaylistModal').on('hidden.bs.modal', function() {
-                videoPlayer.pause();
-                videoPlayer.currentTime = 0;
-                isAutoplayEnabled = false;
-                toggleAutoplayButton.innerHTML = '<i class="fas fa-play"></i> Lecture automatique';
-                toggleAutoplayButton.classList.remove('btn-success');
-                toggleAutoplayButton.classList.add('btn-primary');
+                // Arrêter la lecture
+                if (videoPlayer) {
+                    videoPlayer.pause();
+                    videoPlayer.currentTime = 0;
+                    
+                    // Vider complètement la source
+                    videoPlayer.src = '';
+                    videoPlayer.load();
+                    
+                    // Réinitialiser l'élément vidéo
+                    const videoSrc = videoPlayer.querySelector('source');
+                    if (videoSrc) {
+                        videoSrc.src = '';
+                    }
+                }
+                
+                // Réinitialiser l'interface
+                currentVideoIndex = 0;
+                if (videoItems.length > 0) {
+                    currentVideoTitle.innerHTML = `<i class="fas fa-play-circle"></i> En cours: ${videoItems[0].title}`;
+                }
+                progressBar.style.width = '0%';
+                progressText.textContent = `Video 0 sur ${videoItems.length}`;
+                
+                // Réinitialiser les classes active
+                playlistItems.forEach(item => {
+                    item.classList.remove('active');
+                });
             });
+
+            // CORRECTION : Réinitialiser aussi quand le modal est ouvert
+            $('#playPlaylistModal').on('show.bs.modal', function() {
+                // S'assurer que tout est réinitialisé à l'ouverture
+                currentVideoIndex = 0;
+                if (videoItems.length > 0) {
+                    loadVideo(0);
+                }
+            });
+
         });
     </script>
 @endpush

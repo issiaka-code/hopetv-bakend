@@ -429,6 +429,117 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(78, 115, 223, 0.3);
         }
+
+        /* Styles pour les miniatures vidéo dans l'étape d'organisation */
+        .video-thumbnail {
+            width: 60px;
+            height: 40px;
+            border-radius: 4px;
+            cursor: pointer;
+            object-fit: cover;
+            margin-right: 10px;
+            transition: transform 0.2s;
+        }
+
+        .video-thumbnail:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .selected-video-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            background: white;
+            border-radius: 8px;
+            cursor: move;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s;
+        }
+
+        .selected-video-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-color: #4e73df;
+        }
+
+        .video-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .video-preview-container {
+            position: relative;
+            margin-right: 12px;
+        }
+
+        .play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+            border-radius: 4px;
+        }
+
+        .video-preview-container:hover .play-overlay {
+            opacity: 1;
+        }
+
+        .play-icon-sm {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        /* Modal pour la lecture individuelle */
+        .single-video-modal .modal-dialog {
+            max-width: 800px;
+        }
+
+        .single-video-modal .modal-content {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .single-video-modal .modal-header {
+            background: #4e73df;
+            color: white;
+            border-bottom: none;
+        }
+
+        .single-video-modal .modal-body {
+            padding: 0;
+            background: #ffffff;
+        }
+
+        .single-video-modal video {
+            width: 100%;
+            height: 450px;
+            object-fit: contain;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .video-thumbnail {
+                width: 50px;
+                height: 35px;
+            }
+
+            .selected-video-item {
+                padding: 0.75rem;
+            }
+
+            .single-video-modal video {
+                height: 300px;
+            }
+        }
     </style>
 @endpush
 
@@ -738,6 +849,29 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal pour la lecture individuelle d'une vidéo -->
+    <div class="modal fade single-video-modal" id="singleVideoModal" tabindex="-1" role="dialog"
+        aria-labelledby="singleVideoModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="singleVideoModalLabel">
+                        <i class="fas fa-play-circle"></i> Lecture vidéo
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body  p-3">
+                    <video id="singleVideoPlayer" controls controlsList="nodownload" class="w-100">
+                        <source src="" type="video/mp4">
+                        Votre navigateur ne supporte pas la lecture vidéo.
+                    </video>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
@@ -893,7 +1027,6 @@
                 $('#selectedCount').text(`${selectedVideos.length} vidéo(s) sélectionnée(s)`);
             }
 
-            // Création de la liste triable
             function updateSortableList() {
                 const $list = $('#sortableVideosList');
                 $list.empty();
@@ -907,24 +1040,40 @@
 
                 selectedVideos.forEach((video, index) => {
                     const item = `
-                        <div class="selected-video-item" data-video-id="${video.id}">
-                            <div class="drag-handle">
-                                <i class="fas fa-grip-vertical"></i>
-                            </div>
-                            <div class="video-info">
-                                <div class="video-title">${video.title}</div>
-                                <div class="video-duration">
-                                    <i class="fas fa-clock"></i> ${video.duration}
-                                </div>
-                            </div>
-                            <div class="video-order-number">
-                                <span class="badge badge-primary">#${index + 1}</span>
-                            </div>
-                            <button type="button" class="remove-video" data-video-id="${video.id}">
-                                <i class="fas fa-times"></i>
-                            </button>
+            <div class="selected-video-item" data-video-id="${video.id}">
+                <div class="drag-handle">
+                    <i class="fas fa-grip-vertical"></i>
+                </div>
+                <div class="video-info d-flex flex-row align-items-center">
+                    <div class="video-preview-container" style="position: relative; margin-right: 15px;">
+                        <video class="video-thumbnail" style="width: 100px; height: 100px;" muted>
+                            <source src="${video.url}" type="video/mp4">
+                        </video>
+                        <div class="play-overlay" 
+                             data-video-url="${video.url}" 
+                             data-video-title="${video.title}"
+                             style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
+                                    background: rgba(0,0,0,0.5); display: flex; align-items: center; 
+                                    justify-content: center; opacity: 0; transition: opacity 0.3s; 
+                                    cursor: pointer; border-radius: 4px;">
+                            <i class="fas fa-play text-white"></i>
                         </div>
-                    `;
+                    </div>
+                    <div>
+                        <div class="video-title">${video.title}</div>
+                        <div class="video-duration">
+                            <i class="fas fa-clock"></i> ${video.duration}
+                        </div>
+                    </div>
+                </div>
+                <div class="video-order-number">
+                    <span class="badge badge-primary">#${index + 1}</span>
+                </div>
+                <button type="button" class="remove-video" data-video-id="${video.id}">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
                     $list.append(item);
                 });
 
@@ -940,7 +1089,68 @@
                         updateVideoOrder();
                     }
                 });
+
+                // Lecture au survol des miniatures
+                $('.video-thumbnail').on('mouseenter', function() {
+                    this.play().catch(() => {
+                        // Gérer l'erreur silencieusement
+                    });
+                });
+
+                $('.video-thumbnail').on('mouseleave', function() {
+                    this.pause();
+                    this.currentTime = 0;
+                });
+
+                // Gestion du survol pour afficher l'overlay
+                $('.video-preview-container').on('mouseenter', function() {
+                    $(this).find('.play-overlay').css('opacity', '1');
+                });
+
+                $('.video-preview-container').on('mouseleave', function() {
+                    $(this).find('.play-overlay').css('opacity', '0');
+                });
             }
+
+            // Lecture d'une vidéo individuelle - CORRIGÉ
+            $(document).on('click', '.play-overlay', function(e) {
+                e.stopPropagation(); // Empêcher la propagation du clic
+                const videoUrl = $(this).data('video-url');
+                const videoTitle = $(this).data('video-title');
+
+                // Charger la vidéo dans le modal
+                const $player = $('#singleVideoPlayer');
+                $player.find('source').attr('src', videoUrl);
+                $player[0].load();
+
+                // Mettre à jour le titre du modal
+                $('#singleVideoModalLabel').html(`
+                    <i class="fas fa-play-circle"></i> ${videoTitle}
+                `);
+
+                // Afficher le modal
+                $('#singleVideoModal').modal('show');
+
+                // Lecture automatique
+                setTimeout(() => {
+                    $player[0].play().catch((error) => {
+                        console.log('Lecture automatique bloquée:', error);
+                    });
+                }, 500);
+            });
+
+            // Réinitialiser le lecteur vidéo quand le modal se ferme
+            $('#singleVideoModal').on('hidden.bs.modal', function() {
+                const $player = $('#singleVideoPlayer');
+                $player[0].pause();
+                $player[0].currentTime = 0;
+            });
+
+            // Gestion de la fin de lecture dans le modal individuel
+            $('#singleVideoPlayer').on('ended', function() {
+                // Optionnel: fermer automatiquement après la lecture
+                // $('#singleVideoModal').modal('hide');
+            });
 
             // Mise à jour de l'ordre après drag & drop
             function updateVideoOrder() {
