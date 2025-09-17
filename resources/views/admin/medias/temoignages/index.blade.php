@@ -349,6 +349,7 @@
                                     vidéo</option>
                                 <option value="pdf" {{ request('type') === 'pdf' ? 'selected' : '' }}>PDF</option>
                                 <option value="images" {{ request('type') === 'images' ? 'selected' : '' }}>Images</option>
+                                
                             </select>
                         </div>
                         <!-- Bouton recherche -->
@@ -380,19 +381,19 @@
                                 $thumbnail_url = $temoignageData->thumbnail_url;
                                 $media_url = $temoignageData->media_url;
                                 $is_published = $temoignageData->is_published ?? false;
-                                $images = $temoignageData->images ?? null;
+                                
                             @endphp
 
                             <div class="temoignage-grid-item">
                                 <div class="card temoignage-card">
                                     <div class="temoignage-thumbnail-container">
-                                        <div class="temoignage-thumbnail position-relative"
+                                            <div class="temoignage-thumbnail position-relative"
                                             data-temoignage-url="{{ $thumbnail_url }}"
                                             data-video-url="{{ $temoignageData->video_url ?? '' }}"
                                             data-temoignage-name="{{ $nom }}"
-                                            data-media-url="{{ $media_url }}" data-media-type="{{ $media_type }}"
-                                            data-images="{{ $images ? json_encode($images) : '[]' }}"
-                                            data-has-thumbnail="{{ $temoignageData->has_thumbnail ? 'true' : 'false' }}">
+                                                data-media-url="{{ $media_url }}" data-media-type="{{ $media_type }}"
+                                            data-has-thumbnail="{{ $temoignageData->has_thumbnail ? 'true' : 'false' }}"
+                                            data-images='@json($temoignageData->images ?? [])'>
 
                                             <!-- Afficher l'image de couverture ou icône par défaut -->
                                             @if ($temoignageData->has_thumbnail)
@@ -411,20 +412,7 @@
                                                     @elseif($media_type === 'pdf')
                                                         <i class="fas fa-file-pdf text-white" style="font-size: 3rem;"></i>
                                                     @elseif($media_type === 'images')
-                                                        @if ($temoignageData->has_thumbnail)
-                                                            <img src="{{ $thumbnail_url }}" alt="{{ $nom }}"
-                                                                style="width: 100%; height: 100%; object-fit: cover;">
-                                                        @elseif(isset($images) && count($images) > 0)
-                                                            <img src="{{ asset('storage/' . $images[0]) }}"
-                                                                alt="{{ $nom }}"
-                                                                style="width: 100%; height: 100%; object-fit: cover;">
-                                                        @else
-                                                            <div class="default-thumbnail d-flex align-items-center justify-content-center"
-                                                                style="width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                                                                <i class="fas fa-images text-white"
-                                                                    style="font-size: 3rem;"></i>
-                                                            </div>
-                                                        @endif
+                                                        <i class="fas fa-images text-white" style="font-size: 3rem;"></i>
                                                     @endif
                                                 </div>
                                             @endif
@@ -443,10 +431,8 @@
                                                                 ? 'Lien vidéo'
                                                                 : ($media_type === 'video_file'
                                                                     ? 'Fichier vidéo'
-                                                                    : ($media_type === 'images'
-                                                                        ? 'Images'
-                                                                        : $media_type)))),
-                                                ) }}
+                                                                    : ($media_type === 'images' ? 'Images' : $media_type)))),
+                                                )}}
                                             </span>
 
                                             <!-- Badge statut publication (uniquement pour les vidéos) -->
@@ -476,7 +462,7 @@
                                                     data-title="{{ $nom }}"
                                                     data-description="{{ $description }}"
                                                     data-media-type="{{ $media_type }}"
-                                                    @if ($media_type === 'images' && isset($images)) data-images="{{ json_encode($images) }}" @endif>
+                                                    data-images='@json($temoignageData->images ?? [])'>
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                                 <button
@@ -497,29 +483,16 @@
                                                     </button>
                                                 </form>
 
-                                                <!-- Boutons Publication/Dépublication (uniquement pour les vidéos) -->
+                                                <!-- Switch Publication (uniquement pour les vidéos) -->
                                                 @if (in_array($media_type, ['video_link', 'video_file']))
-                                                    @if ($is_published)
-                                                        <form action="{{ route('temoignages.unpublish', $id) }}"
-                                                            method="POST" class="d-inline">
-                                                            @csrf
-                                                            <button type="submit"
-                                                                class="btn btn-sm btn-outline-warning rounded mx-1"
-                                                                title="Dépublier la vidéo">
-                                                                <i class="fas fa-power-off"></i> Dépublier
-                                                            </button>
-                                                        </form>
-                                                    @else
-                                                        <form action="{{ route('temoignages.publish', $id) }}"
-                                                            method="POST" class="d-inline">
-                                                            @csrf
-                                                            <button type="submit"
-                                                                class="btn btn-sm btn-outline-success rounded mx-1"
-                                                                title="Publier la vidéo">
-                                                                <i class="fas fa-power-off"></i> Publier
-                                                            </button>
-                                                        </form>
-                                                    @endif
+                                                    <button
+                                                        class="btn btn-sm btn-outline-{{ $is_published ? 'success' : 'secondary' }} toggle-publish-btn mx-1 rounded"
+                                                        title="{{ $is_published ? 'Dépublier' : 'Publier' }} la vidéo"
+                                                        data-temoignage-id="{{ $id }}"
+                                                        data-status="{{ $is_published ? 1 : 0 }}">
+                                                        <i class="fas fa-{{ $is_published ? 'toggle-on' : 'toggle-off' }}"></i>
+                                                        <span class="p-1">{{ $is_published ? 'Publié' : 'Non publié' }}</span>
+                                                    </button>
                                                 @endif
                                             </div>
                                         </div>
@@ -556,6 +529,26 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
+            // ===== TOGGLE PUBLICATION (comme établissements) =====
+            $(document).on('click', '.toggle-publish-btn', function() {
+                const $btn = $(this);
+                const id = $btn.data('temoignage-id');
+                const isPublished = Number($btn.data('status')) === 1;
+                const url = isPublished
+                    ? "{{ url('temoignages') }}/" + id + "/unpublish"
+                    : "{{ url('temoignages') }}/" + id + "/publish";
+
+                $.post(url, { _token: '{{ csrf_token() }}' })
+                    .done(function() {
+                        // Rafraîchir pour refléter l'état (simple et robuste)
+                        window.location.reload();
+                    })
+                    .fail(function() {
+                        alert('Erreur lors du changement de statut de publication');
+                    });
+            });
+            // Accumulate multiple selections for images[]
+            let addImageFilesDT = null;
             // ===== GESTION DU FORMULAIRE D'AJOUT =====
             $('input[name="media_type"]', '#addTemoignageForm').change(function() {
                 const selectedType = $(this).val();
@@ -578,13 +571,26 @@
                     $('#addPdfFile, #addPdfImageFile').attr('required', 'required');
                 } else if (selectedType === 'images') {
                     $('#addImageFileSection').removeClass('d-none');
-                    $('#addImageFiles').attr('required', 'required');
+                    $('#addImageFiles, #addImageCoverFile').attr('required', 'required');
                 }
             });
 
             $('#addAudioFile, #addVideoFile, #addPdfFile, #addImageFiles, #addImageCoverFile, #addAudioImageFile, #addVideoImageFile, #addPdfImageFile')
                 .on('change', function() {
                     const isMultiple = !!$(this).attr('multiple');
+
+                    // Special handling to ACCUMULATE selections for images[]
+                    if (this.id === 'addImageFiles') {
+                        const newFiles = Array.from(this.files || []);
+                        if (!addImageFilesDT) {
+                            addImageFilesDT = new DataTransfer();
+                        }
+                        newFiles.forEach(function(file) {
+                            addImageFilesDT.items.add(file);
+                        });
+                        this.files = addImageFilesDT.files;
+                    }
+
                     const files = Array.from(this.files || []);
                     const names = files.map(f => f.name).filter(Boolean);
 
@@ -663,6 +669,9 @@
                 // Nettoyer les infos de sélection détaillées
                 $('.file-selected-info').empty();
                 $('#addMediaTypeAudio').prop('checked', true).trigger('change');
+
+                // Reset accumulated images selection
+                addImageFilesDT = null;
             });
 
             // ===== GESTION DU FORMULAIRE D'ÉDITION =====
@@ -774,7 +783,7 @@
                 $('#modalVideoPlayer').attr('src', '').get(0).load();
                 $('#modalIframePlayer').attr('src', '');
                 $('#modalPdfViewer').attr('src', '');
-                $('#imageCarouselContainer').empty();
+                $('#imageCarouselInner').empty();
 
                 // Récupérer l'URL du média réel
                 const mediaUrl = $(this).data('media-url');
@@ -812,63 +821,17 @@
                         console.log('No PDF URL found');
                     }
                 } else if (mediaType === 'images') {
-                    // Récupérer les images depuis les data attributes
-                    let images = $(this).data('images');
-
-                    // Parser le JSON si c'est une chaîne
-                    if (typeof images === 'string') {
-                        try {
-                            images = JSON.parse(images);
-                        } catch (e) {
-                            console.error('Erreur parsing images JSON:', e);
-                            images = [];
-                        }
-                    }
-
-                    if (images && Array.isArray(images) && images.length > 0) {
-                        // Créer le carousel d'images
-                        let carouselHtml =
-                            '<div id="imageCarousel" class="carousel slide" data-ride="carousel">';
-                        carouselHtml += '<div class="carousel-inner">';
-
-                        images.forEach((image, index) => {
-                            const activeClass = index === 0 ? 'active' : '';
-                            const imageName = image.split('/').pop(); // Extraire le nom du fichier
-                            carouselHtml += `<div class="carousel-item ${activeClass}">
-                <img src="/storage/${image}" class="d-block w-100" style="max-height: 400px; object-fit: contain;" alt="Image ${index + 1}">
-                <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50">
-                    <p class="mb-0">${imageName}</p>
-                </div>
-            </div>`;
+                    const images = $(this).data('images') || [];
+                    if (images.length > 0) {
+                        images.forEach(function(url, idx) {
+                            const active = idx === 0 ? 'active' : '';
+                            const item = '<div class="carousel-item ' + active + '">\
+    <img class="d-block w-100" src="' + url + '" alt="Image ' + (idx + 1) + '" style="max-height: 450px; object-fit: contain; background: #000;"/>\
+</div>';
+                            $('#imageCarouselInner').append(item);
                         });
-
-                        carouselHtml += '</div>';
-
-                        // Ajouter les contrôles si plus d'une image
-                        if (images.length > 1) {
-                            carouselHtml += `
-                <a class="carousel-control-prev" href="#imageCarousel" role="button" data-slide="prev">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span class="sr-only">Précédent</span>
-                </a>
-                <a class="carousel-control-next" href="#imageCarousel" role="button" data-slide="next">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span class="sr-only">Suivant</span>
-                </a>`;
-                        }
-
-                        carouselHtml += '</div>';
-
-                        // Ajouter un indicateur du nombre d'images
-                        carouselHtml +=
-                            `<div class="mt-2 text-center small text-muted">${images.length} image(s)</div>`;
-
-                        $('#imageCarouselContainer').html(carouselHtml).removeClass('d-none');
+                        $('#imageCarouselContainer').removeClass('d-none');
                         $('#mediaTypeBadge').text('Images').removeClass('d-none');
-                    } else {
-                        $('#imageCarouselContainer').html(
-                            '<div class="text-center py-4"><i class="fas fa-exclamation-triangle text-warning fa-2x mb-2"></i><p>Aucune image disponible</p></div>'
-                            ).removeClass('d-none');
                     }
                 }
                 $('#temoignageTitle').text(temoignageName);
@@ -889,7 +852,7 @@
                 $('#modalPdfViewer').attr('src', '');
 
                 // Masquer tous les lecteurs
-                $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer, #pdfViewerContainer')
+                $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer, #pdfViewerContainer, #imageCarouselContainer')
                     .addClass(
                         'd-none');
 

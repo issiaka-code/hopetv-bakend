@@ -54,8 +54,8 @@
                                     autocomplete="off">
                                 <i class="fas fa-file-pdf mr-1"></i> PDF
                             </label>
-                            <label class="btn btn-outline-primary" id="addMediaTypeImageLabel">
-                                <input type="radio" name="media_type" id="addMediaTypeImage" value="images"
+                            <label class="btn btn-outline-primary" id="addMediaTypeImagesLabel">
+                                <input type="radio" name="media_type" id="addMediaTypeImages" value="images"
                                     autocomplete="off">
                                 <i class="fas fa-images mr-1"></i> Images
                             </label>
@@ -176,37 +176,29 @@
                         </div>
                     </div>
 
-                    <!-- Section Images multiples -->
+                    <!-- Section Images -->
                     <div id="addImageFileSection" class="d-none">
                         <div class="form-group">
-                            <label class="font-weight-bold">Images <span class="text-danger">*</span></label>
+                            <label class="font-weight-bold">Images (plusieurs) <span
+                                    class="text-danger">*</span></label>
                             <div class="custom-file">
-                                <input type="file" name="images[]" id="addImageFiles"
-                                    class="custom-file-input @error('images') is-invalid @enderror" accept="image/*"
-                                    multiple>
+                                <input type="file" name="images[]" id="addImageFiles" class="custom-file-input"
+                                    multiple accept="image/*" required>
                                 <label class="custom-file-label" for="addImageFiles">Choisir des images</label>
-                                @error('images')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
                             </div>
-                            <small class="form-text text-muted">Formats acceptés: JPG, PNG, GIF, WEBP (max 10MB par
-                                image)</small>
+                            <small class="form-text text-muted">Vous pouvez sélectionner plusieurs fichiers; vous
+                                pouvez rouvrir le sélecteur pour en ajouter.</small>
                         </div>
-
                         <div class="form-group">
-                            <label class="font-weight-bold">Image de couverture</label>
+                            <label class="font-weight-bold">Image de couverture <span
+                                    class="text-danger">*</span></label>
                             <div class="custom-file">
-                                <input type="file" name="image_couverture_image" id="addImageCoverFile"
-                                    class="custom-file-input @error('image_couverture_image') is-invalid @enderror"
-                                    accept="image/*">
+                                <input type="file" name="image_couverture_images" id="addImageCoverFile"
+                                    class="custom-file-input" accept="image/*" required>
                                 <label class="custom-file-label" for="addImageCoverFile">Choisir une image de
                                     couverture</label>
-                                @error('image_couverture_image')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
                             </div>
-                            <small class="form-text text-muted">Optionnel - Si non fournie, la première image sera
-                                utilisée</small>
+                            <small class="form-text text-muted">Formats acceptés: JPG, PNG, GIF, WEBP (max 4MB)</small>
                         </div>
                     </div>
                 </div>

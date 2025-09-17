@@ -39,7 +39,7 @@ class PodcastController extends Controller
 
         $podcasts = $query->paginate(12);
 
-        $podcastsData = $podcasts->map(function ($podcast) {
+        $podcastsData = collect($podcasts->items())->map(function ($podcast) {
             $isAudio = $podcast->media && $podcast->media->type === 'audio';
             $isVideoLink = $podcast->media && $podcast->media->type === 'link';
             $isVideoFile = $podcast->media && $podcast->media->type === 'video';
@@ -363,7 +363,7 @@ class PodcastController extends Controller
         }
     }
 
-    public function publish($id)
+    public function publish(Request $request, $id)
     {
         $podcast = Podcast::findOrFail($id);
         
@@ -380,15 +380,21 @@ class PodcastController extends Controller
             ]);
 
             notify()->success('Succès', 'Podcast vidéo publié avec succès.');
+            if ($request->ajax()) {
+                return response()->json(['success' => true]);
+            }
             return redirect()->back();
         } catch (\Exception $e) {
             Log::error('Erreur lors de la publication: ' . $e->getMessage());
             Alert::error('Erreur', 'Impossible de publier le podcast.');
+            if ($request->ajax()) {
+                return response()->json(['success' => false], 500);
+            }
             return redirect()->back();
         }
     }
 
-    public function unpublish($id)
+    public function unpublish(Request $request, $id)
     {
         $podcast = Podcast::findOrFail($id);
         
@@ -405,10 +411,16 @@ class PodcastController extends Controller
             ]);
 
             notify()->success('Succès', 'Podcast vidéo dépublié avec succès.');
+            if ($request->ajax()) {
+                return response()->json(['success' => true]);
+            }
             return redirect()->back();
         } catch (\Exception $e) {
             Log::error('Erreur lors de la dépublication: ' . $e->getMessage());
             Alert::error('Erreur', 'Impossible de dépublier le podcast.');
+            if ($request->ajax()) {
+                return response()->json(['success' => false], 500);
+            }
             return redirect()->back();
         }
     }

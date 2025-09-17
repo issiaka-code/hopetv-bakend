@@ -38,7 +38,7 @@ class VideoController extends Controller
         $videos = $query->paginate(12);
 
         // Préparer chaque variable pour la vue et JS
-        $videosData = $videos->map(function ($video) {
+        $videosData = collect($videos->items())->map(function ($video) {
             $isVideoLink = $video->media && $video->media->type === 'link';
             $isVideoFile = $video->media && $video->media->type === 'video';
 
@@ -310,7 +310,7 @@ class VideoController extends Controller
         }
     }
 
-    public function publish($id)
+    public function publish(Request $request, $id)
     {
         $video = Video::findOrFail($id);
         try {
@@ -325,15 +325,21 @@ class VideoController extends Controller
 
             DB::commit();
             notify()->success('Succès', 'Vidéo publiée avec succès.');
+            if ($request->ajax()) {
+                return response()->json(['success' => true]);
+            }
             return redirect()->route('videos.index');
         } catch (\Exception $e) {
             DB::rollBack();
             notify()->error('Erreur', 'Impossible de publier la vidéo: ' . $e->getMessage());
+            if ($request->ajax()) {
+                return response()->json(['success' => false], 500);
+            }
             return redirect()->back();
         }
     }
 
-    public function unpublish($id)
+    public function unpublish(Request $request, $id)
     {
         $video = Video::findOrFail($id);
         try {
@@ -348,10 +354,16 @@ class VideoController extends Controller
 
             DB::commit();
             notify()->success('Succès', 'Vidéo dépubliée avec succès.');
+            if ($request->ajax()) {
+                return response()->json(['success' => true]);
+            }
             return redirect()->route('videos.index');
         } catch (\Exception $e) {
             DB::rollBack();
             notify()->error('Erreur', 'Impossible de dépublier la vidéo: ' . $e->getMessage());
+            if ($request->ajax()) {
+                return response()->json(['success' => false], 500);
+            }
             return redirect()->back();
         }
     }

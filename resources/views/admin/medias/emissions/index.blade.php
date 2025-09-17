@@ -469,25 +469,16 @@
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
-                                                <!-- Boutons Publier/Dépublier (uniquement pour les vidéos) -->
+                                                <!-- Switch Publication (uniquement pour les vidéos) -->
                                                 @if(in_array($media_type, ['video_link', 'video_file']))
-                                                    @if($is_published)
-                                                        <form action="{{ route('emissions.unpublish', $id) }}" method="POST" class="d-inline">
-                                                            @csrf
-                                                            <button type="submit" class="btn btn-sm btn-outline-warning mx-1 rounded" 
-                                                                    title="Dépublier cette émission">
-                                                                <i class="fas fa-power-off"></i> Dépublier
-                                                            </button>
-                                                        </form>
-                                                    @else
-                                                        <form action="{{ route('emissions.publish', $id) }}" method="POST" class="d-inline">
-                                                            @csrf
-                                                            <button type="submit" class="btn btn-sm btn-outline-success mx-1 rounded" 
-                                                                    title="Publier cette émission">
-                                                                <i class="fas fa-power-off"></i> Publier
-                                                            </button>
-                                                        </form>
-                                                    @endif
+                                                    <button
+                                                        class="btn btn-sm btn-outline-{{ $is_published ? 'success' : 'secondary' }} toggle-publish-emission-btn mx-1 rounded"
+                                                        title="{{ $is_published ? 'Dépublier' : 'Publier' }} cette émission"
+                                                        data-emission-id="{{ $id }}"
+                                                        data-status="{{ $is_published ? 1 : 0 }}">
+                                                        <i class="fas fa-{{ $is_published ? 'toggle-on' : 'toggle-off' }}"></i>
+                                                        <span class="p-1">{{ $is_published ? 'Publié' : 'Non publié' }}</span>
+                                                    </button>
                                                 @endif
                                             </div>
                                         </div>
@@ -524,6 +515,19 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
+            // ===== TOGGLE PUBLICATION (Émissions) =====
+            $(document).on('click', '.toggle-publish-emission-btn', function() {
+                const $btn = $(this);
+                const id = $btn.data('emission-id');
+                const isPublished = Number($btn.data('status')) === 1;
+                const url = isPublished
+                    ? "{{ url('emissions') }}/" + id + "/unpublish"
+                    : "{{ url('emissions') }}/" + id + "/publish";
+
+                $.post(url, { _token: '{{ csrf_token() }}' })
+                    .done(function() { window.location.reload(); })
+                    .fail(function() { alert("Erreur lors du changement de statut de l'émission"); });
+            });
             // ===== GESTION DU FORMULAIRE D'AJOUT =====
             $('input[name="media_type"]', '#addEmissionForm').change(function() {
                 const selectedType = $(this).val();

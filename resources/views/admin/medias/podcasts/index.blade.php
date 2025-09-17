@@ -453,27 +453,16 @@
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
-                                                <!-- Boutons Publication/Dépublication (uniquement pour les vidéos) -->
+                                                <!-- Switch Publication (uniquement pour les vidéos) -->
                                                 @if(in_array($podcast->media_type, ['video_link', 'video_file']))
-                                                    @if($podcast->is_published)
-                                                        <form action="{{ route('podcasts.unpublish', $podcast->id) }}" method="POST"
-                                                            class="d-inline">
-                                                            @csrf
-                                                            <button type="submit" class="btn btn-sm btn-outline-warning rounded mx-1"
-                                                                title="Dépublier la vidéo">
-                                                                <i class="fas fa-power-off"></i> Dépublier
-                                                            </button>
-                                                        </form>
-                                                    @else
-                                                        <form action="{{ route('podcasts.publish', $podcast->id) }}" method="POST"
-                                                            class="d-inline">
-                                                            @csrf
-                                                            <button type="submit" class="btn btn-sm btn-outline-success rounded mx-1"
-                                                                title="Publier la vidéo">
-                                                                <i class="fas fa-power-off"></i> Publier
-                                                            </button>
-                                                        </form>
-                                                    @endif
+                                                    <button
+                                                        class="btn btn-sm btn-outline-{{ $podcast->is_published ? 'success' : 'secondary' }} toggle-publish-podcast-btn mx-1 rounded"
+                                                        title="{{ $podcast->is_published ? 'Dépublier' : 'Publier' }} la vidéo"
+                                                        data-podcast-id="{{ $podcast->id }}"
+                                                        data-status="{{ $podcast->is_published ? 1 : 0 }}">
+                                                        <i class="fas fa-{{ $podcast->is_published ? 'toggle-on' : 'toggle-off' }}"></i>
+                                                        <span class="p-1">{{ $podcast->is_published ? 'Publié' : 'Non publié' }}</span>
+                                                    </button>
                                                 @endif
                                             </div>
                                         </div>
@@ -510,6 +499,19 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
+            // ===== TOGGLE PUBLICATION (Podcasts) =====
+            $(document).on('click', '.toggle-publish-podcast-btn', function() {
+                const $btn = $(this);
+                const id = $btn.data('podcast-id');
+                const isPublished = Number($btn.data('status')) === 1;
+                const url = isPublished
+                    ? "{{ url('podcasts') }}/" + id + "/unpublish"
+                    : "{{ url('podcasts') }}/" + id + "/publish";
+
+                $.post(url, { _token: '{{ csrf_token() }}' })
+                    .done(function() { window.location.reload(); })
+                    .fail(function() { alert('Erreur lors du changement de statut du podcast'); });
+            });
             // ===== GESTION DU FORMULAIRE D'AJOUT =====
             $('input[name="media_type"]', '#addPodcastForm').change(function() {
                 const selectedType = $(this).val();

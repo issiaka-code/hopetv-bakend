@@ -49,10 +49,24 @@
                     </div>
                 </div>
                 
-                <!-- Carousel Images -->
-                <div id="imageCarouselContainer" class="text-center overflow-hidden mb-4 d-none">
-                    <!-- Le contenu du carousel sera généré dynamiquement par JavaScript -->
+                <!-- Carrousel Images -->
+                <div id="imageCarouselContainer" class="mb-4 d-none">
+                    <div id="imageCarousel" class="carousel slide" data-ride="carousel">
+                        <div class="carousel-inner" id="imageCarouselInner">
+                            
+                        </div>
+                        <a class="carousel-control-prev" href="#imageCarousel" role="button" data-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="sr-only">Précédent</span>
+                        </a>
+                        <a class="carousel-control-next" href="#imageCarousel" role="button" data-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="sr-only">Suivant</span>
+                        </a>
+                    </div>
                 </div>
+
+                
                 
                 <!-- Indicateur de type de média -->
                 <div class="text-center mb-3">

@@ -421,27 +421,14 @@
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
-                                                @if ($video->is_published)
-                                                    <form action="{{ route('videos.unpublish', $video->id) }}"
-                                                        method="POST" class="d-inline">
-                                                        @csrf
-                                                        <button type="submit"
-                                                            class="btn btn-sm btn-outline-warning rounded mx-1"
-                                                            title="Dépublier la vidéo">
-                                                            <i class="fas fa-power-off"></i> Dépublier
-                                                        </button>
-                                                    </form>
-                                                @else
-                                                    <form action="{{ route('videos.publish', $video->id) }}"
-                                                        method="POST" class="d-inline">
-                                                        @csrf
-                                                        <button type="submit"
-                                                            class="btn btn-sm btn-outline-success rounded mx-1"
-                                                            title="Publier la vidéo">
-                                                            <i class="fas fa-power-off"></i> Publier
-                                                        </button>
-                                                    </form>
-                                                @endif
+                                                <button
+                                                    class="btn btn-sm btn-outline-{{ $video->is_published ? 'success' : 'secondary' }} toggle-publish-video-btn mx-1 rounded"
+                                                    title="{{ $video->is_published ? 'Dépublier' : 'Publier' }} la vidéo"
+                                                    data-video-id="{{ $video->id }}"
+                                                    data-status="{{ $video->is_published ? 1 : 0 }}">
+                                                    <i class="fas fa-{{ $video->is_published ? 'toggle-on' : 'toggle-off' }}"></i>
+                                                    <span class="p-1">{{ $video->is_published ? 'Publié' : 'Non publié' }}</span>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -478,6 +465,19 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
+            // ===== TOGGLE PUBLICATION (Vidéos) =====
+            $(document).on('click', '.toggle-publish-video-btn', function() {
+                const $btn = $(this);
+                const id = $btn.data('video-id');
+                const isPublished = Number($btn.data('status')) === 1;
+                const url = isPublished
+                    ? "{{ url('videos') }}/" + id + "/unpublish"
+                    : "{{ url('videos') }}/" + id + "/publish";
+
+                $.post(url, { _token: '{{ csrf_token() }}' })
+                    .done(function() { window.location.reload(); })
+                    .fail(function() { alert('Erreur lors du changement de statut de la vidéo'); });
+            });
             // ===== GESTION DU FORMULAIRE D'AJOUT =====
 
             // Basculer entre fichier et lien pour l'ajout

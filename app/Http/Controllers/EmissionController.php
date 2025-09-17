@@ -422,7 +422,7 @@ class EmissionController extends Controller
         }
     }
 
-    public function publish($id)
+    public function publish(Request $request, $id)
     {
         $emission = Emission::findOrFail($id);
         
@@ -438,15 +438,21 @@ class EmissionController extends Controller
             ]);
 
             notify()->success('Succès', 'Émission vidéo publiée avec succès.');
+            if ($request->ajax()) {
+                return response()->json(['success' => true]);
+            }
             return redirect()->back();
         } catch (\Exception $e) {
             Log::error('Erreur lors de la publication: ' . $e->getMessage());
             Alert::error('Erreur', 'Impossible de publier l\'émission.');
+            if ($request->ajax()) {
+                return response()->json(['success' => false], 500);
+            }
             return redirect()->back();
         }
     }
 
-    public function unpublish($id)
+    public function unpublish(Request $request, $id)
     {
         $emission = Emission::findOrFail($id);
         
@@ -462,10 +468,16 @@ class EmissionController extends Controller
             ]);
 
             notify()->success('Succès', 'Émission vidéo dépubliée avec succès.');
+            if ($request->ajax()) {
+                return response()->json(['success' => true]);
+            }
             return redirect()->back();
         } catch (\Exception $e) {
             Log::error('Erreur lors de la dépublication: ' . $e->getMessage());
             Alert::error('Erreur', 'Impossible de dépublier l\'émission.');
+            if ($request->ajax()) {
+                return response()->json(['success' => false], 500);
+            }
             return redirect()->back();
         }
     }
