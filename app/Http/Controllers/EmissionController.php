@@ -38,10 +38,9 @@ class EmissionController extends Controller
                 }
             });
         }
-
         $emissions = $query->paginate(12);
 
-        // Préparer chaque variable pour la vue et JS
+        // Préparer chaque variable pour la vue et JS (aligné avec Temoignages)
         $emissionsData = collect($emissions->items())->map(function ($emission) {
             $isAudio = $emission->media && $emission->media->type === 'audio';
             $isVideoLink = $emission->media && $emission->media->type === 'link';
@@ -87,12 +86,12 @@ class EmissionController extends Controller
                 'media_type' => $isAudio ? 'audio' : ($isVideoLink ? 'video_link' : ($isVideoFile ? 'video_file' : 'pdf')),
                 'thumbnail_url' => $thumbnailUrl,
                 'video_url' => $isVideoFile ? asset('storage/' . $emission->media->url_fichier) : $thumbnailUrl,
-                'has_thumbnail' => $emission->media->thumbnail ? true : false,
+                'media_url' => $emission->media ? asset('storage/' . $emission->media->url_fichier) : null,
+                'has_thumbnail' => $emission->media && $emission->media->thumbnail ? true : false,
                 'is_published' => $emission->media->is_published ?? true,
             ];
         });
 
-        // Envoyer chaque émission comme variable séparée
         return view('admin.medias.emissions.index', [
             'emissions' => $emissions,
             'emissionsData' => $emissionsData,

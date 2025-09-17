@@ -47,10 +47,6 @@
                                 <input type="radio" name="media_type" id="editMediaTypeVideoLink" value="video_link" autocomplete="off">
                                 <i class="fas fa-link"></i> Lien vidéo
                             </label>
-                            <label class="btn btn-outline-primary" id="editMediaTypePdfLabel">
-                                <input type="radio" name="media_type" id="editMediaTypePdf" value="pdf" autocomplete="off">
-                                <i class="fas fa-file-pdf"></i> PDF
-                            </label>
                         </div>
                     </div>
 

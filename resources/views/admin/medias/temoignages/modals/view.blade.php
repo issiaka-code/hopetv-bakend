@@ -49,6 +49,11 @@
                     </div>
                 </div>
                 
+                <!-- Carousel Images -->
+                <div id="imageCarouselContainer" class="text-center overflow-hidden mb-4 d-none">
+                    <!-- Le contenu du carousel sera généré dynamiquement par JavaScript -->
+                </div>
+                
                 <!-- Indicateur de type de média -->
                 <div class="text-center mb-3">
                     <span id="mediaTypeBadge" class="badge badge-pill badge-info"></span>

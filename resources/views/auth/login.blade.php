@@ -62,14 +62,23 @@
                 <h4>Connexion</h4>
               </div>
               <div class="card-body">
+                <!-- Affichage des erreurs générales -->
+                @if ($errors->any())
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <ul class="mb-0">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <form method="POST" action="{{ route('login') }}" class="needs-validation" novalidate="">
                   @csrf
                   <div class="form-group">
                     <label for="email">Adresse Email</label>
-                    <input id="email" type="email" class="form-control" name="email" tabindex="1" required autofocus>
-                    <div class="invalid-feedback">
-                      Veuillez saisir votre email
-                    </div>
+                    <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" 
+                           name="email" value="{{ old('email') }}" tabindex="1" required autofocus>
                   </div>
                   <div class="form-group">
                     <div class="d-block">
@@ -81,13 +90,11 @@
                       </div>
                     </div>
                     <div class="password-input-group">
-                      <input id="password" type="password" class="form-control" name="password" tabindex="2" required>
+                      <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" 
+                             name="password" tabindex="2" required>
                       <button type="button" class="password-toggle" id="passwordToggle">
                         <i class="fas fa-eye"></i>
                       </button>
-                      <div class="invalid-feedback">
-                        Veuillez saisir votre mot de passe
-                      </div>
                     </div>
                   </div>
                   <div class="form-group">
@@ -113,7 +120,6 @@
   <!-- General JS Scripts -->
   <script src="js/app.min.js"></script>
   <!-- JS Libraies -->
-  <!-- Page Specific JS File -->
   <!-- Template JS File -->
   <script src="js/scripts.js"></script>
   <!-- Custom JS File -->

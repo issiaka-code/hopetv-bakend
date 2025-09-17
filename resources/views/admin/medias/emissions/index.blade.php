@@ -376,33 +376,37 @@
                                 $description = $emission->description;
                                 $created_at = $emission->created_at;
                                 $media_type = $emission->media_type;
-                                $media_url = $emission->video_url;
+                                $media_url = $emission->media_url;
+                                $video_url = $emission->video_url;
                                 $thumbnail_url = $emission->thumbnail_url;
+                                $is_published = $emission->is_published;
                             @endphp
 
                             <div class="emission-grid-item">
                                 <div class="card emission-card">
                                     <div class="emission-thumbnail-container">
                                         <div class="emission-thumbnail position-relative"
-                                            data-emission-url="{{ $thumbnail_url }}"
-                                            data-video-url="{{ $media_type === 'video_file' ? $media_url : '' }}"
+                                            data-emission-url="{{ $media_type === 'video_link' ? $video_url : $media_url }}"
+                                            data-video-url="{{ $media_type === 'video_file' ? $video_url : '' }}"
                                             data-emission-name="{{ $nom }}" data-media-type="{{ $media_type }}"
                                             data-has-thumbnail="{{ $emission->has_thumbnail ? 'true' : 'false' }}">
 
-                                            @if ($media_type === 'audio')
-                                                <div class="audio-thumbnail"><i class="fas fa-music"></i></div>
-                                            @elseif ($media_type === 'video_link')
-                                                <iframe src="{{ $thumbnail_url }}" frameborder="0"
-                                                    allowfullscreen></iframe>
-                                            @elseif ($media_type === 'pdf')
-                                                <div class="pdf-thumbnail"><i class="fas fa-file-pdf"></i></div>
-                                            @elseif ($media_type === 'video_file')
-                                                @if ($emission->has_thumbnail)
-                                                    <img src="{{ $thumbnail_url }}" alt="{{ $nom }}"
-                                                        style="width: 100%; height: 100%; object-fit: cover;">
-                                                @else
-                                                    <video src="{{ $media_url }}"></video>
-                                                @endif
+                                            @if ($emission->has_thumbnail)
+                                                <img src="{{ $thumbnail_url }}" alt="{{ $nom }}"
+                                                    style="width: 100%; height: 100%; object-fit: cover;">
+                                            @else
+                                                <div class="default-thumbnail d-flex align-items-center justify-content-center"
+                                                     style="width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                                    @if ($media_type === 'audio')
+                                                        <i class="fas fa-music text-white" style="font-size: 3rem;"></i>
+                                                    @elseif($media_type === 'video_link')
+                                                        <iframe src="{{ $video_url }}" width="100%" height="100%" frameborder="0"></iframe>
+                                                    @elseif($media_type === 'video_file')
+                                                        <i class="fas fa-video text-white" style="font-size: 3rem;"></i>
+                                                    @elseif($media_type === 'pdf')
+                                                        <i class="fas fa-file-pdf text-white" style="font-size: 3rem;"></i>
+                                                    @endif
+                                                </div>
                                             @endif
 
                                             <div class="thumbnail-overlay">
@@ -425,9 +429,9 @@
 
                                             <!-- Badge statut publication (uniquement pour les vidéos) -->
                                             @if(in_array($media_type, ['video_link', 'video_file']))
-                                                <span class="badge {{ $is_published ? 'badge-success' : 'badge-secondary' }}" 
+                                                <span class="badge {{ ($emission->is_published ?? false) ? 'badge-success' : 'badge-secondary' }}" 
                                                       style="position: absolute; top: 10px; left: 10px; z-index: 10;">
-                                                    {{ $is_published ? 'Publié' : 'Non publié' }}
+                                                    {{ ($emission->is_published ?? false) ? 'Publié' : 'Non publié' }}
                                                 </span>
                                             @endif
                                         </div>
@@ -443,7 +447,7 @@
 
                                             <div class="btn-group">
                                                 <button class="btn btn-sm btn-outline-info view-emission-btn rounded"
-                                                    data-emission-url="{{ $thumbnail_url }}"
+                                                    data-emission-url="{{ $media_type === 'video_link' ? $video_url : $media_url }}"
                                                     data-emission-name="{{ $nom }}"
                                                     data-title="{{ $nom }}"
                                                     data-description="{{ $description }}"
@@ -455,7 +459,16 @@
                                                     data-emission-id="{{ $id }}">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
-
+                                                
+                                                <form action="{{ route('emissions.destroy', $id) }}" method="POST"
+                                                    class="d-inline delete-form">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded"
+                                                        onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette émission ?')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
                                                 <!-- Boutons Publier/Dépublier (uniquement pour les vidéos) -->
                                                 @if(in_array($media_type, ['video_link', 'video_file']))
                                                     @if($is_published)
@@ -476,16 +489,6 @@
                                                         </form>
                                                     @endif
                                                 @endif
-
-                                                <form action="{{ route('emissions.destroy', $id) }}" method="POST"
-                                                    class="d-inline delete-form">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded"
-                                                        onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette émission ?')">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </form>
                                             </div>
                                         </div>
                                     </div>
@@ -652,35 +655,52 @@
             // ===== VISUALISATION DES ÉMISSIONS =====
             $(document).on('click', '.view-emission-btn, .emission-thumbnail', function() {
                 const emissionUrl = $(this).data('emission-url');
+                const videoUrl = $(this).data('video-url') || '';
                 const emissionName = $(this).data('emission-name');
                 const mediaType = $(this).data('media-type');
                 const emissionDescription = $(this).closest('.emission-card').find('.card-text').attr(
                     'title') || '';
 
                 // Masquer tous les lecteurs et réinitialiser
-                $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer, #pdfViewerContainer')
-                    .addClass(
-                        'd-none');
-                $('#modalAudioPlayer').attr('src', '').get(0).load();
-                $('#modalVideoPlayer').attr('src', '').get(0).load();
+                $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer, #pdfViewerContainer').addClass('d-none');
+                $('#modalAudioPlayer').attr('src', '');
+                $('#modalVideoPlayer').attr('src', '');
                 $('#modalIframePlayer').attr('src', '');
                 $('#modalPdfViewer').attr('src', '');
 
+                // Garde-fous: ne pas tenter de charger si l'URL manque
+                const ensureUrl = (url) => typeof url === 'string' && url.trim().length > 0;
+
                 if (mediaType === 'audio') {
-                    $('#modalAudioPlayer').attr('src', emissionUrl).get(0).load();
+                    if (!ensureUrl(emissionUrl)) {
+                        alert('URL audio introuvable pour cette émission.');
+                        return;
+                    }
+                    $('#modalAudioPlayer').attr('src', emissionUrl);
                     $('#audioPlayerContainer').removeClass('d-none');
                     $('#mediaTypeBadge').text('Audio').removeClass('d-none');
                 } else if (mediaType === 'video_link') {
+                    if (!ensureUrl(emissionUrl)) {
+                        alert('URL de la vidéo en ligne introuvable pour cette émission.');
+                        return;
+                    }
                     $('#modalIframePlayer').attr('src', emissionUrl);
                     $('#iframePlayerContainer').removeClass('d-none');
                     $('#mediaTypeBadge').text('Vidéo en ligne').removeClass('d-none');
                 } else if (mediaType === 'video_file') {
-                    // Utiliser l'URL de la vidéo pour la lecture
-                    const videoUrl = $(this).data('video-url') || emissionUrl;
-                    $('#modalVideoPlayer').attr('src', videoUrl).get(0).load();
+                    const playUrl = ensureUrl(videoUrl) ? videoUrl : emissionUrl;
+                    if (!ensureUrl(playUrl)) {
+                        alert('URL de la vidéo locale introuvable pour cette émission.');
+                        return;
+                    }
+                    $('#modalVideoPlayer').attr('src', playUrl);
                     $('#videoPlayerContainer').removeClass('d-none');
                     $('#mediaTypeBadge').text('Vidéo locale').removeClass('d-none');
                 } else if (mediaType === 'pdf') {
+                    if (!ensureUrl(emissionUrl)) {
+                        alert('URL du PDF introuvable pour cette émission.');
+                        return;
+                    }
                     $('#modalPdfViewer').attr('src', emissionUrl);
                     $('#pdfViewerContainer').removeClass('d-none');
                     $('#mediaTypeBadge').text('PDF').removeClass('d-none');

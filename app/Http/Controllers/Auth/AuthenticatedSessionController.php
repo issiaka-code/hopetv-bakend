@@ -18,11 +18,25 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
-        
-        $request->session()->regenerate();
+        try {
+            $request->authenticate();
+            
+            $request->session()->regenerate();
 
-        return redirect()->intended(RouteServiceProvider::HOME);
+            // Redirection avec message de succès (évite les problèmes de lint/typage sur session()->flash)
+            return redirect()->intended(RouteServiceProvider::HOME)
+                ->with('status', __('auth.login_success'));
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Les erreurs de validation sont automatiquement gérées par Laravel
+            // et redirigées vers la page de connexion avec les erreurs
+            throw $e;
+        } catch (\Exception $e) {
+            // Gestion des autres erreurs inattendues
+            return redirect()->back()
+                ->withInput($request->only('email', 'remember'))
+                ->withErrors(['email' => 'Une erreur inattendue s\'est produite. Veuillez réessayer.']);
+        }
     }
 
     /**
@@ -36,6 +50,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/login');
+        return redirect('/login')->with('status', __('auth.logout_success'));
     }
 }

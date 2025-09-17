@@ -145,7 +145,7 @@
                             <div class="custom-file">
                                 <input type="file" name="fichier_pdf" id="addPdfFile"
                                     class="custom-file-input @error('fichier_pdf') is-invalid @enderror"
-                                    accept=".pdf" required>
+                                    accept=".pdf">
                                 <label class="custom-file-label" for="addPdfFile">Choisir un fichier PDF</label>
                                 @error('fichier_pdf')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -159,7 +159,7 @@
                             <div class="custom-file">
                                 <input type="file" name="image_couverture_pdf" id="addPdfImageFile"
                                     class="custom-file-input @error('image_couverture_pdf') is-invalid @enderror"
-                                    accept="image/*" required>
+                                    accept="image/*">
                                 <label class="custom-file-label" for="addPdfImageFile">Choisir une image</label>
                                 @error('image_couverture_pdf')
                                     <div class="invalid-feedback">{{ $message }}</div>

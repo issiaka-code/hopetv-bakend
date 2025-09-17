@@ -348,6 +348,7 @@
                                 <option value="video_link" {{ request('type') === 'video_link' ? 'selected' : '' }}>Liens
                                     vidéo</option>
                                 <option value="pdf" {{ request('type') === 'pdf' ? 'selected' : '' }}>PDF</option>
+                                <option value="images" {{ request('type') === 'images' ? 'selected' : '' }}>Images</option>
                             </select>
                         </div>
                         <!-- Bouton recherche -->
@@ -379,6 +380,7 @@
                                 $thumbnail_url = $temoignageData->thumbnail_url;
                                 $media_url = $temoignageData->media_url;
                                 $is_published = $temoignageData->is_published ?? false;
+                                $images = $temoignageData->images ?? null;
                             @endphp
 
                             <div class="temoignage-grid-item">
@@ -388,8 +390,9 @@
                                             data-temoignage-url="{{ $thumbnail_url }}"
                                             data-video-url="{{ $temoignageData->video_url ?? '' }}"
                                             data-temoignage-name="{{ $nom }}"
-                                            data-media-url="{{ $media_url }}"
+                                            data-media-url="{{ $media_url }}" 
                                             data-media-type="{{ $media_type }}"
+                                            data-images="{{ $images ? json_encode($images) : '[]' }}"
                                             data-has-thumbnail="{{ $temoignageData->has_thumbnail ? 'true' : 'false' }}">
 
                                             <!-- Afficher l'image de couverture ou icône par défaut -->
@@ -402,12 +405,14 @@
                                                     @if ($media_type === 'audio')
                                                         <i class="fas fa-music text-white" style="font-size: 3rem;"></i>
                                                     @elseif($media_type === 'video_link')
-                                                        <iframe src="{{ $thumbnail_url }}" width="100%"
-                                                            height="100%" frameborder="0"></iframe>
+                                                        <iframe src="{{ $thumbnail_url }}" width="100%" height="100%"
+                                                            frameborder="0"></iframe>
                                                     @elseif($media_type === 'video_file')
                                                         <i class="fas fa-video text-white" style="font-size: 3rem;"></i>
                                                     @elseif($media_type === 'pdf')
                                                         <i class="fas fa-file-pdf text-white" style="font-size: 3rem;"></i>
+                                                    @elseif($media_type === 'images')
+                                                        <i class="fas fa-images text-white" style="font-size: 3rem;"></i>
                                                     @endif
                                                 </div>
                                             @endif
@@ -426,14 +431,17 @@
                                                                 ? 'Lien vidéo'
                                                                 : ($media_type === 'video_file'
                                                                     ? 'Fichier vidéo'
-                                                                    : $media_type))),
+                                                                    : ($media_type === 'images'
+                                                                        ? 'Images'
+                                                                        : $media_type)))),
                                                 ) }}
                                             </span>
 
                                             <!-- Badge statut publication (uniquement pour les vidéos) -->
-                                            @if(in_array($media_type, ['video_link', 'video_file']))
-                                                <span class="badge {{ $is_published ? 'badge-success' : 'badge-secondary' }}" 
-                                                      style="position: absolute; top: 10px; left: 10px; z-index: 10;">
+                                            @if (in_array($media_type, ['video_link', 'video_file']))
+                                                <span
+                                                    class="badge {{ $is_published ? 'badge-success' : 'badge-secondary' }}"
+                                                    style="position: absolute; top: 10px; left: 10px; z-index: 10;">
                                                     {{ $is_published ? 'Publié' : 'Non publié' }}
                                                 </span>
                                             @endif
@@ -449,16 +457,21 @@
                                             <small class="text-muted mb-1">{{ $created_at->format('d/m/Y') }}</small>
 
                                             <div class="btn-group">
-                                                <button class="btn btn-sm btn-outline-info view-temoignage-btn rounded" title="Voir le témoignage"
-                                                    data-temoignage-url="{{ $thumbnail_url }}"
+                                                <button class="btn btn-sm btn-outline-info view-temoignage-btn rounded"
+                                                    title="Voir le témoignage" data-temoignage-url="{{ $thumbnail_url }}"
                                                     data-media-url="{{ $media_url }}"
                                                     data-temoignage-name="{{ $nom }}"
                                                     data-title="{{ $nom }}"
                                                     data-description="{{ $description }}"
-                                                    data-media-type="{{ $media_type }}">
+                                                    data-media-type="{{ $media_type }}"
+                                                    @if($media_type === 'images' && isset($images))
+                                                        data-images="{{ json_encode($images) }}"
+                                                    @endif>
                                                     <i class="fas fa-eye"></i>
                                                 </button>
-                                                <button class="btn btn-sm btn-outline-primary edit-temoignage-btn mx-1 rounded" title="Modifier le témoignage"
+                                                <button
+                                                    class="btn btn-sm btn-outline-primary edit-temoignage-btn mx-1 rounded"
+                                                    title="Modifier le témoignage"
                                                     data-temoignage-id="{{ $id }}">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
@@ -467,28 +480,31 @@
                                                     class="d-inline delete-form">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded" title="Supprimer le témoignage"
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded"
+                                                        title="Supprimer le témoignage"
                                                         onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce témoignage ?')">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
 
                                                 <!-- Boutons Publication/Dépublication (uniquement pour les vidéos) -->
-                                                @if(in_array($media_type, ['video_link', 'video_file']))
-                                                    @if($is_published)
-                                                        <form action="{{ route('temoignages.unpublish', $id) }}" method="POST"
-                                                            class="d-inline">
+                                                @if (in_array($media_type, ['video_link', 'video_file']))
+                                                    @if ($is_published)
+                                                        <form action="{{ route('temoignages.unpublish', $id) }}"
+                                                            method="POST" class="d-inline">
                                                             @csrf
-                                                            <button type="submit" class="btn btn-sm btn-outline-warning rounded mx-1"
+                                                            <button type="submit"
+                                                                class="btn btn-sm btn-outline-warning rounded mx-1"
                                                                 title="Dépublier la vidéo">
                                                                 <i class="fas fa-power-off"></i>
                                                             </button>
                                                         </form>
                                                     @else
-                                                        <form action="{{ route('temoignages.publish', $id) }}" method="POST"
-                                                            class="d-inline">
+                                                        <form action="{{ route('temoignages.publish', $id) }}"
+                                                            method="POST" class="d-inline">
                                                             @csrf
-                                                            <button type="submit" class="btn btn-sm btn-outline-success rounded mx-1"
+                                                            <button type="submit"
+                                                                class="btn btn-sm btn-outline-success rounded mx-1"
                                                                 title="Publier la vidéo">
                                                                 <i class="fas fa-power-off"></i>
                                                             </button>
@@ -533,9 +549,10 @@
             // ===== GESTION DU FORMULAIRE D'AJOUT =====
             $('input[name="media_type"]', '#addTemoignageForm').change(function() {
                 const selectedType = $(this).val();
-                $('#addAudioFileSection, #addVideoFileSection, #addVideoLinkSection, #addPdfFileSection')
+                $('#addAudioFileSection, #addVideoFileSection, #addVideoLinkSection, #addPdfFileSection, #addImageFileSection')
                     .addClass('d-none');
-                $('#addAudioFile, #addVideoFile, #addVideoLink, #addPdfFile, #addAudioImageFile, #addVideoImageFile, #addPdfImageFile').removeAttr('required');
+                $('#addAudioFile, #addVideoFile, #addVideoLink, #addPdfFile, #addImageFiles, #addAudioImageFile, #addVideoImageFile, #addPdfImageFile, #addImageCoverFile')
+                    .removeAttr('required');
 
                 if (selectedType === 'audio') {
                     $('#addAudioFileSection').removeClass('d-none');
@@ -549,19 +566,91 @@
                 } else if (selectedType === 'pdf') {
                     $('#addPdfFileSection').removeClass('d-none');
                     $('#addPdfFile, #addPdfImageFile').attr('required', 'required');
+                } else if (selectedType === 'images') {
+                    $('#addImageFileSection').removeClass('d-none');
+                    $('#addImageFiles').attr('required', 'required');
                 }
             });
 
-            $('#addAudioFile, #addVideoFile, #addPdfFile, #addAudioImageFile, #addVideoImageFile, #addPdfImageFile').on('change', function() {
-                let fileName = $(this).val().split('\\').pop();
-                $(this).next('.custom-file-label').addClass("selected").html(fileName);
-            });
+            $('#addAudioFile, #addVideoFile, #addPdfFile, #addImageFiles, #addImageCoverFile, #addAudioImageFile, #addVideoImageFile, #addPdfImageFile')
+                .on('change', function() {
+                    const isMultiple = !!$(this).attr('multiple');
+                    const files = Array.from(this.files || []);
+                    const names = files.map(f => f.name).filter(Boolean);
+
+                    // Déterminer le libellé par défaut selon l'input
+                    const id = this.id;
+                    const defaultLabel = (function() {
+                        switch (id) {
+                            case 'addImageFiles':
+                                return 'Choisir des images';
+                            case 'addImageCoverFile':
+                                return 'Choisir une image de couverture';
+                            case 'addAudioImageFile':
+                            case 'addVideoImageFile':
+                            case 'addPdfImageFile':
+                                return 'Choisir une image';
+                            case 'addAudioFile':
+                            case 'addVideoFile':
+                            case 'addPdfFile':
+                            default:
+                                return 'Choisir un fichier';
+                        }
+                    })();
+
+                    // Mettre à jour le label
+                    let labelText = defaultLabel;
+                    if (isMultiple) {
+                        if (names.length === 0) {
+                            labelText = defaultLabel;
+                        } else if (names.length === 1) {
+                            labelText = names[0];
+                        } else {
+                            labelText = `${names.length} fichiers sélectionnés`;
+                        }
+                    } else {
+                        labelText = names[0] || defaultLabel;
+                    }
+                    $(this).next('.custom-file-label').addClass('selected').html(labelText);
+
+                    // Afficher la liste détaillée uniquement pour le champ multiple des images (#addImageFiles)
+                    const $customFile = $(this).closest('.custom-file');
+                    let $info = $customFile.next('.file-selected-info');
+                    if (id === 'addImageFiles') {
+                        if ($info.length === 0) {
+                            $info = $('<div class="file-selected-info mt-1 small text-muted"></div>');
+                            $customFile.after($info);
+                        }
+                        if (names.length > 0) {
+                            // Limiter l'affichage à 5 noms et indiquer s'il y en a plus
+                            const maxShow = 5;
+                            const shown = names.slice(0, maxShow);
+                            const extra = names.length - shown.length;
+                            const list = shown.join(', ');
+                            $info.html(extra > 0 ? `Sélection : ${list} et +${extra} autre(s)` : `Sélection : ${list}`);
+                        } else {
+                            $info.empty();
+                        }
+                    } else {
+                        // Pour les autres inputs, pas de liste détaillée, on supprime si existante
+                        if ($info.length) {
+                            $info.remove();
+                        }
+                    }
+                });
 
             $('#addTemoignageModal').on('hidden.bs.modal', function() {
                 $('#addTemoignageForm')[0].reset();
-                $('#addAudioFile, #addVideoFile, #addPdfFile').next('.custom-file-label').html(
-                    'Choisir un fichier');
-                $('#addAudioImageFile, #addVideoImageFile, #addPdfImageFile').next('.custom-file-label').html('Choisir une image');
+                $('#addAudioFile, #addVideoFile, #addPdfFile')
+                    .next('.custom-file-label').html('Choisir un fichier');
+                $('#addAudioImageFile, #addVideoImageFile, #addPdfImageFile')
+                    .next('.custom-file-label').html('Choisir une image');
+                $('#addImageFiles')
+                    .next('.custom-file-label').html('Choisir des images');
+                $('#addImageCoverFile')
+                    .next('.custom-file-label').html('Choisir une image de couverture');
+                // Nettoyer les infos de sélection détaillées
+                $('.file-selected-info').empty();
                 $('#addMediaTypeAudio').prop('checked', true).trigger('change');
             });
 
@@ -584,11 +673,12 @@
                 }
             });
 
-            $('#editAudioFile, #editVideoFile, #editPdfFile, #editAudioImageFile, #editVideoImageFile, #editPdfImageFile').on('change', function() {
-                let fileName = $(this).val().split('\\').pop();
-                $(this).next('.custom-file-label').addClass("selected").html(fileName ||
-                    'Choisir un nouveau fichier');
-            });
+            $('#editAudioFile, #editVideoFile, #editPdfFile, #editAudioImageFile, #editVideoImageFile, #editPdfImageFile')
+                .on('change', function() {
+                    let fileName = $(this).val().split('\\').pop();
+                    $(this).next('.custom-file-label').addClass("selected").html(fileName ||
+                        'Choisir un nouveau fichier');
+                });
 
             $(document).on('click', '.edit-temoignage-btn', function() {
                 const temoignageId = $(this).data('temoignage-id');
@@ -611,7 +701,7 @@
                                     '/').pop());
                                 $('#editCurrentAudio').show();
                                 $('#editCurrentVideo, #editCurrentLink, #editCurrentPdf')
-                            .hide();
+                                    .hide();
                             } else if (mediaType === 'video') {
                                 $('#editMediaTypeVideoFile').prop('checked', true).trigger(
                                     'change');
@@ -619,13 +709,14 @@
                                     '/').pop());
                                 $('#editCurrentVideo').show();
                                 $('#editCurrentAudio, #editCurrentLink, #editCurrentPdf')
-                            .hide();
-                                
+                                    .hide();
+
                                 // Gestion de l'image de couverture
                                 if (data.media.thumbnail) {
                                     const thumbnailName = data.media.thumbnail.split('/').pop();
                                     $('#editCurrentThumbnailName').text(thumbnailName);
-                                    $('#editCurrentThumbnailPreview').attr('src', '/storage/' + data.media.thumbnail).show();
+                                    $('#editCurrentThumbnailPreview').attr('src', '/storage/' +
+                                        data.media.thumbnail).show();
                                     $('#editCurrentThumbnail').show();
                                 } else {
                                     $('#editCurrentThumbnail').hide();
@@ -638,7 +729,7 @@
                                 $('#editViewCurrentLink').attr('href', data.media.url_fichier);
                                 $('#editCurrentLink').show();
                                 $('#editCurrentAudio, #editCurrentVideo, #editCurrentPdf')
-                                .hide();
+                                    .hide();
                             } else if (mediaType === 'pdf') {
                                 $('#editMediaTypePdf').prop('checked', true).trigger(
                                     'change');
@@ -665,21 +756,20 @@
                 const temoignageDescription = $(this).closest('.temoignage-card').find('.card-text').attr(
                     'title') || '';
                 // Masquer tous les lecteurs et réinitialiser
-                $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer, #pdfViewerContainer')
+                $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer, #pdfViewerContainer, #imageCarouselContainer')
                     .addClass(
                         'd-none');
                 $('#modalAudioPlayer').attr('src', '').get(0).load();
                 $('#modalVideoPlayer').attr('src', '').get(0).load();
                 $('#modalIframePlayer').attr('src', '');
                 $('#modalPdfViewer').attr('src', '');
+                $('#imageCarouselContainer').empty();
 
                 // Récupérer l'URL du média réel
                 const mediaUrl = $(this).data('media-url');
-                
-                
+
                 if (mediaType === 'audio') {
                     if (mediaUrl) {
-                        console.log('Loading audio:', mediaUrl);
                         $('#modalAudioPlayer').attr('src', mediaUrl);
                         $('#modalAudioPlayer')[0].load();
                         $('#audioPlayerContainer').removeClass('d-none');
@@ -702,17 +792,79 @@
                     }
                 } else if (mediaType === 'pdf') {
                     if (mediaUrl) {
-                        console.log('Loading PDF:', mediaUrl);
                         // Charger le PDF avec les contrôles natifs du navigateur
                         $('#modalPdfViewer').attr('src', mediaUrl + '#view=FitH&toolbar=1&navpanes=1');
                         $('#pdfDownload').attr('href', mediaUrl);
                         $('#pdfViewerContainer').removeClass('d-none');
                         $('#mediaTypeBadge').text('PDF').removeClass('d-none');
-                        
-                        // Initialiser les contrôles PDF
-                        initPdfControls(mediaUrl);
                     } else {
                         console.log('No PDF URL found');
+                    }
+                } else if (mediaType === 'images') {
+                    // Récupérer les images depuis les data attributes
+                    let images = $(this).data('images');
+                    console.log(images);
+                    
+                    // Parser le JSON si c'est une chaîne
+                    if (typeof images === 'string') {
+                        try {
+                            images = JSON.parse(images);
+                        } catch (e) {
+                            console.error('Erreur parsing images JSON:', e);
+                            images = [];
+                        }
+                    }
+
+                    if (images && Array.isArray(images) && images.length > 0) {
+                        // Créer le carousel d'images
+                        let carouselHtml = '<div id="imageCarousel" class="carousel slide" data-ride="carousel"><div class="carousel-inner">';
+                        images.forEach((image, index) => {
+                            const activeClass = index === 0 ? 'active' : '';
+                            // Construire une URL sûre: préfixer /storage si chemin relatif et encoder les caractères
+                            let raw = String(image || '');
+                            // Retirer éventuels antislashs d'échappement
+                            raw = raw.replace(/\\/g, '/');
+                            let url = raw;
+                            const isAbsolute = /^https?:\/\//i.test(raw);
+                            const hasStorage = /^\/?storage\//i.test(raw) || raw.startsWith('/storage/');
+                            if (!isAbsolute) {
+                                if (!hasStorage) {
+                                    url = '/storage/' + raw.replace(/^\/+/, '');
+                                } else {
+                                    url = raw.startsWith('/') ? raw : '/' + raw;
+                                }
+                            }
+                            // Encoder l'URL tout en conservant les slashs
+                            url = encodeURI(url);
+
+                            carouselHtml += `<div class="carousel-item ${activeClass}">
+                                <img src="${url}" class="d-block w-100" style="max-height: 400px; object-fit: contain;">
+                            </div>`;
+                        });
+                        carouselHtml += '</div>';
+                        
+                        // Ajouter les contrôles si plus d'une image
+                        if (images.length > 1) {
+                            carouselHtml += `
+                                <a class="carousel-control-prev" href="#imageCarousel" role="button" data-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                </a>
+                                <a class="carousel-control-next" href="#imageCarousel" role="button" data-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                </a>
+                                <ol class="carousel-indicators">`;
+                            images.forEach((_, index) => {
+                                const activeClass = index === 0 ? 'active' : '';
+                                carouselHtml += `<li data-target="#imageCarousel" data-slide-to="${index}" class="${activeClass}"></li>`;
+                            });
+                            carouselHtml += '</ol>';
+                        }
+                        carouselHtml += '</div>';
+                        
+                        $('#imageCarouselContainer').html(carouselHtml).removeClass('d-none');
+                        $('#mediaTypeBadge').text('Images').removeClass('d-none');
+                    } else {
+                        console.log('No images found');
                     }
                 }
 
