@@ -9,6 +9,8 @@ use App\Http\Controllers\InfoBulleController;
 use App\Http\Controllers\LienUtileController;
 use App\Http\Controllers\ParametreController;
 use App\Http\Controllers\TemoignageController;
+use App\Http\Controllers\AvenirController;
+use App\Http\Controllers\EnseignementController;
 use App\Http\Controllers\Auth\AuthViewController;
 use App\Http\Controllers\InfoImportanteController;
 use App\Http\Controllers\EmissionController;
@@ -47,13 +49,18 @@ Route::middleware('auth')->group(function () {
     Route::post('podcasts/{id}/unpublish', [PodcastController::class, 'unpublish'])->name('podcasts.unpublish');
     Route::resource('temoignages', TemoignageController::class);
     Route::post('temoignages/{id}/publish', [TemoignageController::class, 'publish'])->name('temoignages.publish');
-    Route::post('temoignages/{id}/unpublish', [TemoignageController::class, 'unpublish'])->name('temoignages.unpublish');
+    Route::post('temoignages/{id}/unpublish', [TemoignageController::class, 'unpublish'])->name('temoignages.unpublish');    
+    Route::resource('enseignements', EnseignementController::class);
+    Route::post('enseignements/{id}/publish', [EnseignementController::class, 'publish'])->name('enseignements.publish');
+    Route::post('enseignements/{id}/unpublish', [EnseignementController::class, 'unpublish'])->name('enseignements.unpublish');
     Route::resource('emissions', EmissionController::class);
     Route::post('emissions/{id}/publish', [EmissionController::class, 'publish'])->name('emissions.publish');
     Route::post('emissions/{id}/unpublish', [EmissionController::class, 'unpublish'])->name('emissions.unpublish');
     Route::post('emissions/{id}/toggle_status', [EmissionController::class, 'toggleStatus'])->name('emissions.toggle_status');
     Route::resource('playlists', PlaylistController::class)->except(['show']);
     Route::get('playlists/{id}/show', [PlaylistController::class, 'show'])->name('playlists.show');
+    // A venir (comme playlist mais sélectionne uniquement les vidéos non publiées)
+    Route::resource('a-venir', AvenirController::class);
     Route::resource('info-bulles', InfoBulleController::class);
     Route::resource('parametres', ParametreController::class);
     Route::resource('liens-utiles', LienUtileController::class);

@@ -41,6 +41,11 @@
                     <i data-feather="message-square"></i><span>Témoignages</span>
                 </a>
             </li>
+            <li class="{{ Route::is('enseignements.*') ? 'active' : '' }}">
+                <a href="{{ route('enseignements.index') }}" class="nav-link">
+                    <i data-feather="book-open"></i><span>Enseignements</span>
+                </a>
+            </li>
             <li class="{{ Route::is('emissions.*') ? 'active' : '' }}">
                 <a href="{{ route('emissions.index') }}" class="nav-link">
                     <i data-feather="radio"></i><span>Nos émissions</span>
@@ -57,6 +62,15 @@
                 <ul class="dropdown-menu">
                     <li><a class="nav-link {{ Route::is('playlists.index') ? 'active' : '' }}" href="{{ route('playlists.index') }}">Toutes les playlists</a></li>
                     <li><a class="nav-link {{ Route::is('playlists.create') ? 'active' : '' }}"" href="{{ route('playlists.create') }}">Créer une playlist</a></li>
+                </ul>
+            </li>
+            <li class="dropdown {{ Route::is('a-venir.*') ? 'active' : '' }}">
+                <a href="#" class="menu-toggle nav-link has-dropdown">
+                    <i data-feather="clock"></i><span>A venir</span>
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a class="nav-link {{ Route::is('a-venir.index') ? 'active' : '' }}" href="{{ route('a-venir.index') }}">Toutes les programmations</a></li>
+                    <li><a class="nav-link {{ Route::is('a-venir.create') ? 'active' : '' }}" href="{{ route('a-venir.create') }}">Créer une programmation</a></li>
                 </ul>
             </li>
             <li class="{{ Route::is('info_importantes.*') ? 'active' : '' }}">

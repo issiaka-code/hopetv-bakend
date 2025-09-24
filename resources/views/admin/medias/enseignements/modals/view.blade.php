@@ -1,10 +1,10 @@
-<!-- Modal pour visualiser le témoignage -->
-<div class="modal fade" id="temoignageViewModal" tabindex="-1" role="dialog" aria-labelledby="temoignageViewModalLabel"
+<!-- Modal pour visualiser l'enseignement -->
+<div class="modal fade" id="enseignementViewModal" tabindex="-1" role="dialog" aria-labelledby="enseignementViewModalLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-static" role="document">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title mb-2" id="temoignageViewModalLabel">Témoignage</h5>
+                <h5 class="modal-title mb-2" id="enseignementViewModalLabel">Enseignement</h5>
                 <button type="button" class="close text-white fw-bold" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -71,14 +71,14 @@
                     <span id="mediaTypeBadge" class="badge badge-pill badge-info"></span>
                 </div>
                 
-                <!-- Infos témoignage -->
+                <!-- Infos enseignement -->
                 <div class="mt-2 text-justify">
                     <div class="card">
                         <div class="card-header bg-light">
                             <h6 class="mb-0">Description</h6>
                         </div>
                         <div class="card-body">
-                            <p id="temoignageDescription" class="text-muted mb-0"></p>
+                            <p id="enseignementDescription" class="text-muted mb-0"></p>
                         </div>
                     </div>
                 </div>
