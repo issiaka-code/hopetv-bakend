@@ -136,6 +136,12 @@
                 <div class="playlist-info-card">
                     <div class="playlist-info-header d-flex justify-content-between align-items-center">
                         <div><i class="fas fa-film"></i> Vidéos</div>
+                        @if ($avenir->items->count() > 0)
+                            <button type="button" class="btn btn-sm btn-success bg-success" data-toggle="modal"
+                                data-target="#playAvenirModal">
+                                <i class="fas fa-play"></i> Lire la programmation
+                            </button>
+                        @endif
                     </div>
                     <div class="playlist-info-body">
                         @if ($avenir->items->count() > 0)
@@ -178,13 +184,116 @@
             </div>
         </div>
     </div>
+    @if ($avenir->items->count() > 0)
+        <div class="modal fade playlist-modal" id="playAvenirModal" tabindex="-1" role="dialog"
+            aria-labelledby="playAvenirModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="playAvenirModalLabel">
+                            <i class="fas fa-play-circle"></i> Lecture: {{ $avenir->nom }}
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="current-playing" id="currentVideoTitle">Chargement...</div>
+                        <div class="video-player-container">
+                            <video class="video-player" id="videoPlayer" controls>
+                                Votre navigateur ne supporte pas la lecture de vidéos.
+                            </video>
+                        </div>
+                        <div class="playlist-controls d-flex justify-content-between align-items-center my-2">
+                            <button class="btn bg-secondary" id="prevVideo"><i class="fas fa-step-backward"></i>
+                                Précédent</button>
+                            <div class="playlist-progress flex-grow-1 mx-3">
+                                <div class="progress">
+                                    <div class="progress-bar" id="playlistProgress" role="progressbar" style="width: 0%"
+                                        aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <small id="progressText">Vidéo 1 sur {{ $avenir->items->count() }}</small>
+                            </div>
+                            <button class="btn bg-secondary" id="nextVideo">Suivant <i
+                                    class="fas fa-step-forward"></i></button>
+                        </div>
+                        <div class="playlist-items d-none">
+                            @foreach ($avenir->items->sortBy('position') as $index => $item)
+                                <div class="playlist-item" data-video-id="{{ $item->video->id }}"
+                                    data-video-src="{{ asset('storage/' . $item->video->media->url_fichier) }}"
+                                    data-order="{{ $item->position }}">
+                                    <div class="playlist-item-thumb"><i class="fas fa-play-circle"></i></div>
+                                    <div class="playlist-item-info">
+                                        <div class="playlist-item-title">{{ $item->video->nom }}</div>
+                                        <div class="playlist-item-duration">{{ $item->duree_video ?? 'N/A' }}</div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @push('scripts')
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    let currentVideoIndex = 0;
+                    const videoPlayer = document.getElementById('videoPlayer');
+                    const playlistItems = document.querySelectorAll('#playAvenirModal .playlist-item');
+                    const currentVideoTitle = document.getElementById('currentVideoTitle');
+                    const prevButton = document.getElementById('prevVideo');
+                    const nextButton = document.getElementById('nextVideo');
+                    const progressBar = document.getElementById('playlistProgress');
+                    const progressText = document.getElementById('progressText');
+
+                    const videos = Array.from(playlistItems).map((item) => ({
+                        id: item.dataset.videoId,
+                        title: item.querySelector('.playlist-item-title').textContent,
+                        url: item.dataset.videoSrc,
+                        order: parseInt(item.dataset.order, 10) || 0,
+                        duration: (item.querySelector('.playlist-item-duration') || {}).textContent || 'N/A'
+                    })).sort((a, b) => a.order - b.order);
+
+                    function loadVideo(index) {
+                        if (index < 0 || index >= videos.length) return;
+                        currentVideoIndex = index;
+                        const video = videos[index];
+                        currentVideoTitle.innerHTML = `<i class="fas fa-play-circle"></i> En cours: ${video.title}`;
+                        videoPlayer.innerHTML = `<source src="${video.url}" type="video/mp4">`;
+                        videoPlayer.load();
+                        const pct = ((index + 1) / videos.length) * 100;
+                        progressBar.style.width = pct + '%';
+                        progressText.textContent = `Vidéo ${index + 1} sur ${videos.length}`;
+                        prevButton.disabled = index === 0;
+                        nextButton.disabled = index === videos.length - 1;
+                        const playPromise = videoPlayer.play();
+                        if (playPromise) {
+                            playPromise.catch(() => {});
+                        }
+                    }
+
+                    prevButton.addEventListener('click', function() {
+                        if (currentVideoIndex > 0) loadVideo(currentVideoIndex - 1);
+                    });
+                    nextButton.addEventListener('click', function() {
+                        if (currentVideoIndex < videos.length - 1) loadVideo(currentVideoIndex + 1);
+                    });
+                    videoPlayer.addEventListener('ended', function() {
+                        if (currentVideoIndex < videos.length - 1) loadVideo(currentVideoIndex + 1);
+                    });
+                    $('#playAvenirModal').on('show.bs.modal', function() {
+                        loadVideo(0);
+                    });
+                    $('#playAvenirModal').on('hidden.bs.modal', function() {
+                        try {
+                            videoPlayer.pause();
+                            videoPlayer.currentTime = 0;
+                            videoPlayer.src = '';
+                            videoPlayer.load();
+                        } catch (e) {}
+                    });
+                });
+            </script>
+        @endpush
+    @endif
 @endsection
-
-@extends('admin.master')
-
-@section('title', 'Détail Programmation - À venir')
-
-@php
-    /* Reuse the playlist show UI for now */
-@endphp
-@include('admin.playlists.show')

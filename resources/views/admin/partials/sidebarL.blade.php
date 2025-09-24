@@ -56,7 +56,7 @@
             <li class="menu-header">Programmation et Contenu</li>
 
             <li class="dropdown {{ Route::is('playlists.*') ? 'active' : '' }}">
-                <a href="#" class="menu-toggle nav-link has-dropdown">
+                <a href="javascript:void(0)" class="menu-toggle nav-link has-dropdown">
                     <i data-feather="list"></i><span>Playlists</span>
                 </a>
                 <ul class="dropdown-menu">
@@ -65,7 +65,7 @@
                 </ul>
             </li>
             <li class="dropdown {{ Route::is('a-venir.*') ? 'active' : '' }}">
-                <a href="#" class="menu-toggle nav-link has-dropdown">
+                <a href="javascript:void(0)" class="menu-toggle nav-link has-dropdown">
                     <i data-feather="clock"></i><span>A venir</span>
                 </a>
                 <ul class="dropdown-menu">

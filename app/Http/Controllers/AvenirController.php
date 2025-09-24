@@ -30,9 +30,17 @@ class AvenirController extends Controller
 
     public function create()
     {
-        $videos = Video::where('is_deleted', false)->whereHas('media', function ($q) {
-            $q->where('type', 'video')->where('is_published', false);
-        })->orderBy('nom', 'asc')->get();
+        $videos = Video::where('is_deleted', false)
+            ->whereHas('media', function ($q) {
+                $q->where('type', 'video')
+                    ->where('is_deleted', false)
+                    ->where(function ($qq) {
+                        $qq->where('is_published', false)
+                           ->orWhereNull('is_published');
+                    });
+            })
+            ->orderBy('nom', 'asc')
+            ->get();
 
         foreach ($videos as $video) {
             if ($video->media && $video->media->type === 'video') {
@@ -106,9 +114,17 @@ class AvenirController extends Controller
     public function edit($id)
     {
         $avenir = Avenir::notDeleted()->with(['items' => function ($q) { $q->notDeleted()->with('video')->orderBy('created_at', 'asc'); }])->findOrFail($id);
-        $videos = Video::where('is_deleted', false)->whereHas('media', function ($q) {
-            $q->where('type', 'video')->where('is_published', false);
-        })->orderBy('nom', 'asc')->get();
+        $videos = Video::where('is_deleted', false)
+            ->whereHas('media', function ($q) {
+                $q->where('type', 'video')
+                    ->where('is_deleted', false)
+                    ->where(function ($qq) {
+                        $qq->where('is_published', false)
+                           ->orWhereNull('is_published');
+                    });
+            })
+            ->orderBy('nom', 'asc')
+            ->get();
         foreach ($videos as $video) {
             if ($video->media && $video->media->type === 'video') {
                 try {
