@@ -240,7 +240,11 @@
                     $('#iframePlayerContainer').addClass('d-none');
                     $('#modalIframePlayer').attr('src', '');
                     $('#videoPlayerContainer').removeClass('d-none');
-                    $('#modalVideoPlayer').attr('src', videoUrl);
+                    // Activer l'autoplay (muted requis par les navigateurs)
+                    $('#modalVideoPlayer')
+                        .attr('src', videoUrl)
+                        .prop('muted', true)
+                        .attr('autoplay', true)[0].play().catch(() => {});
                     $('#mediaTypeBadge').text('Fichier vidéo');
                 } else {
                     $('#videoPlayerContainer').addClass('d-none');
@@ -248,10 +252,13 @@
                     $('#iframePlayerContainer').removeClass('d-none');
                     if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
                         const videoId = getYouTubeId(videoUrl);
-                        $('#modalIframePlayer').attr('src', `https://www.youtube.com/embed/${videoId}`);
+                        // Autoplay + mute pour contourner les politiques navigateur
+                        $('#modalIframePlayer').attr('src', `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1`);
                         $('#mediaTypeBadge').text('Vidéo en ligne');
                     } else {
-                        $('#modalIframePlayer').attr('src', videoUrl);
+                        // Tentative d'autoplay pour iframe générique (peut être limité par la plateforme)
+                        const sep = videoUrl.includes('?') ? '&' : '?';
+                        $('#modalIframePlayer').attr('src', `${videoUrl}${sep}autoplay=1`);
                         $('#mediaTypeBadge').text('Vidéo en ligne');
                     }
                 }
@@ -268,7 +275,10 @@
                     $('#iframePlayerContainer').addClass('d-none');
                     $('#modalIframePlayer').attr('src', '');
                     $('#videoPlayerContainer').removeClass('d-none');
-                    $('#modalVideoPlayer').attr('src', videoUrl);
+                    $('#modalVideoPlayer')
+                        .attr('src', videoUrl)
+                        .prop('muted', true)
+                        .attr('autoplay', true)[0].play().catch(() => {});
                     $('#mediaTypeBadge').text('Fichier vidéo');
                 } else {
                     $('#videoPlayerContainer').addClass('d-none');
@@ -276,10 +286,11 @@
                     $('#iframePlayerContainer').removeClass('d-none');
                     if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
                         const videoId = getYouTubeId(videoUrl);
-                        $('#modalIframePlayer').attr('src', `https://www.youtube.com/embed/${videoId}`);
+                        $('#modalIframePlayer').attr('src', `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1`);
                         $('#mediaTypeBadge').text('Vidéo en ligne');
                     } else {
-                        $('#modalIframePlayer').attr('src', videoUrl);
+                        const sep = videoUrl.includes('?') ? '&' : '?';
+                        $('#modalIframePlayer').attr('src', `${videoUrl}${sep}autoplay=1`);
                         $('#mediaTypeBadge').text('Vidéo en ligne');
                     }
                 }
@@ -287,6 +298,14 @@
                 $('#videoTitle').text($card.find('.card-title').text());
                 $('#videoDescription').text($card.find('.card-text').text());
                 $('#videoViewModal').modal('show');
+            });
+
+            // Nettoyage/pause à la fermeture du modal
+            $('#videoViewModal').on('hidden.bs.modal', function() {
+                const $video = $('#modalVideoPlayer');
+                try { $video[0].pause(); } catch(e) {}
+                $video.attr('src', '');
+                $('#modalIframePlayer').attr('src', '');
             });
 
             // Fonction pour extraire l'ID d'une vidéo YouTube

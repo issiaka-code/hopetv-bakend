@@ -37,7 +37,7 @@ class Emission extends Model
         return $this->hasMany(EmissionItem::class, 'id_Emission')
                     ->where('is_deleted', false)
                     ->where('is_active', true)
-                    ->orderBy('position', 'asc');
+                    ->orderBy('created_at', 'asc');
     }
 
     /**
@@ -63,25 +63,6 @@ class Emission extends Model
     {
         return $query->where('is_deleted', false);
     }
-
-    /**
-     * Scope pour les émissions actives
-     */
-    // scopeActive supprimé (pas de colonne etat)
-
-    /**
-     * Accessor pour le statut
-     */
-    // getStatusAttribute supprimé (pas de colonne etat)
-
-    /**
-     * Accessor pour la classe CSS du statut
-     */
-    // getStatusClassAttribute supprimé (pas de colonne etat)
-
-    /**
-     * Compter le nombre de vidéos dans cette émission
-     */
     public function getVideosCountAttribute()
     {
         return $this->items()->count();
