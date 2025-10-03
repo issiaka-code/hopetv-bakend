@@ -35,7 +35,7 @@
                         <label class="font-weight-bold">Type de média <span class="text-danger">*</span></label>
                         <div class="btn-group btn-group-toggle w-100" data-toggle="buttons">
                             <label class="btn btn-outline-primary active" id="addMediaTypeAudioLabel">
-                                <input type="radio" name="media_type" id="addMediaTypeAudio" value="audio"
+                                <input type="radio" name="media_type" id="addMediaTypeAudio" value="audio" checked
                                     autocomplete="off">
                                 <i class="fas fa-music mr-1"></i> Audio
                             </label>
