@@ -692,16 +692,39 @@
                     $('#editPdfFileSection').removeClass('d-none');
                 } else if (selectedType === 'images') {
                     $('#editImageFileSection').removeClass('d-none');
-                    $('#editImageFiles, #editImageCoverFile').attr('required', 'required');
+                    // Not setting required here - server validation already has 'nullable'
                 }
             });
 
-            $('#editAudioFile, #editVideoFile, #editPdfFile, #editAudioImageFile, #editVideoImageFile, #editPdfImageFile, #editImageFiles, #editImageCoverFile')
+            // File input handlers for simple file inputs (single files)
+            $('#editAudioFile, #editVideoFile, #editPdfFile, #editAudioImageFile, #editVideoImageFile, #editPdfImageFile')
                 .on('change', function() {
                     let fileName = $(this).val().split('\\').pop();
                     $(this).next('.custom-file-label').addClass("selected").html(fileName ||
                         'Choisir un nouveau fichier');
                 });
+
+            // Special handler for #editImageFiles (multiple files with accumulation support)
+            $('#editImageFiles').on('change', function() {
+                const fileCount = this.files.length;
+                if (fileCount > 0) {
+                    let fileList = '';
+                    for (let i = 0; i < fileCount; i++) {
+                        fileList += (i > 0 ? ', ' : '') + this.files[i].name;
+                    }
+                    $(this).next('.custom-file-label').addClass("selected").html(
+                        fileCount + ' fichiers sélectionnés: ' + fileList
+                    );
+                } else {
+                    $(this).next('.custom-file-label').removeClass("selected").html('Choisir des images');
+                }
+            });
+
+            // Handler for cover image (single file)
+            $('#editImageCoverFile').on('change', function() {
+                let fileName = $(this).val().split('\\').pop();
+                $(this).next('.custom-file-label').addClass("selected").html(fileName || 'Choisir une image de couverture');
+            });
 
             $(document).on('click', '.edit-programme-btn', function() {
                 const programmeId = $(this).data('programme-id');
@@ -761,7 +784,7 @@
                                 $('#editCurrentPdf').show();
                                 $('#editCurrentAudio, #editCurrentVideo, #editCurrentLink')
                                     .hide();
-                            } else if (data.media && data.media.type === 'images') {
+                            } else if (mediaType === 'images') {
                                 $('#editMediaTypeImages').prop('checked', true).trigger('change');
                                 // Render existing images with checkboxes
                                 const container = $('#existingImagesContainer');
@@ -790,6 +813,13 @@
                         alert('Erreur lors du chargement des données du programme');
                     }
                 });
+            });
+
+            // Cleanup when modal is closed
+            $('#editProgrammeModal').on('hidden.bs.modal', function () {
+                $('#editImageFiles').val('');
+                $('#editImageCoverFile').val('');
+                $('#editImageFilesLabel').text('Choisir des images');
             });
 
             // ===== VISUALISATION DES PROGRAMMES =====

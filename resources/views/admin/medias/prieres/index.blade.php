@@ -692,16 +692,55 @@
                     $('#editPdfFileSection').removeClass('d-none');
                 } else if (selectedType === 'images') {
                     $('#editImageFileSection').removeClass('d-none');
-                    $('#editImageFiles, #editImageCoverFile').attr('required', 'required');
+                    // Ne pas mettre required car on peut juste supprimer des images existantes
                 }
             });
 
-            $('#editAudioFile, #editVideoFile, #editPdfFile, #editAudioImageFile, #editVideoImageFile, #editPdfImageFile, #editImageFiles, #editImageCoverFile')
+            // Gestion des fichiers EDIT avec support multi-fichiers pour images
+            $('#editAudioFile, #editVideoFile, #editPdfFile, #editAudioImageFile, #editVideoImageFile, #editPdfImageFile')
                 .on('change', function() {
                     let fileName = $(this).val().split('\\').pop();
                     $(this).next('.custom-file-label').addClass("selected").html(fileName ||
                         'Choisir un nouveau fichier');
                 });
+
+            // Gestion spéciale pour les images multiples en édition
+            $('#editImageFiles').on('change', function() {
+                const files = Array.from(this.files || []);
+                const names = files.map(f => f.name).filter(Boolean);
+                let labelText = 'Choisir des images';
+                
+                if (names.length === 0) {
+                    labelText = 'Choisir des images';
+                } else if (names.length === 1) {
+                    labelText = names[0];
+                } else {
+                    labelText = `${names.length} fichiers sélectionnés`;
+                }
+                
+                $(this).next('.custom-file-label').addClass('selected').html(labelText);
+                
+                const $customFile = $(this).closest('.custom-file');
+                let $info = $customFile.next('.file-selected-info');
+                if ($info.length === 0) {
+                    $info = $('<div class="file-selected-info mt-1 small text-muted"></div>');
+                    $customFile.after($info);
+                }
+                if (names.length > 0) {
+                    const maxShow = 5;
+                    const shown = names.slice(0, maxShow);
+                    const extra = names.length - shown.length;
+                    const list = shown.join(', ');
+                    $info.html(extra > 0 ? `Fichiers : ${list} et +${extra} autre(s)` : `Fichiers : ${list}`);
+                } else {
+                    $info.empty();
+                }
+            });
+
+            $('#editImageCoverFile').on('change', function() {
+                const fileName = $(this).val().split('\\').pop();
+                $(this).next('.custom-file-label').addClass("selected").html(fileName || 'Choisir une image de couverture');
+            });
 
             $(document).on('click', '.edit-priere-btn', function() {
                 const priereId = $(this).data('priere-id');
@@ -761,7 +800,7 @@
                                 $('#editCurrentPdf').show();
                                 $('#editCurrentAudio, #editCurrentVideo, #editCurrentLink')
                                     .hide();
-                            } else if (data.media && data.media.type === 'images') {
+                            } else if (mediaType === 'images') {
                                 $('#editMediaTypeImages').prop('checked', true).trigger('change');
                                 // Render existing images with checkboxes
                                 const container = $('#existingImagesContainer');
@@ -790,6 +829,13 @@
                         alert('Erreur lors du chargement des données de la prière');
                     }
                 });
+            });
+
+            // Cleanup when modal is closed
+            $('#editPriereModal').on('hidden.bs.modal', function () {
+                $('#editImageFiles').val('');
+                $('#editImageCoverFile').val('');
+                $('#editImageFilesLabel').text('Choisir des images');
             });
 
             // ===== VISUALISATION DES PRIÈRES =====

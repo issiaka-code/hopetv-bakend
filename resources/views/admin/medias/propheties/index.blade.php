@@ -692,16 +692,56 @@
                     $('#editPdfFileSection').removeClass('d-none');
                 } else if (selectedType === 'images') {
                     $('#editImageFileSection').removeClass('d-none');
-                    $('#editImageFiles, #editImageCoverFile').attr('required', 'required');
+                    // Ne pas mettre required car on peut juste supprimer des images existantes
                 }
             });
 
-            $('#editAudioFile, #editVideoFile, #editPdfFile, #editAudioImageFile, #editVideoImageFile, #editPdfImageFile, #editImageFiles, #editImageCoverFile')
+            // Gestion des fichiers EDIT avec support multi-fichiers pour images
+            $('#editAudioFile, #editVideoFile, #editPdfFile, #editAudioImageFile, #editVideoImageFile, #editPdfImageFile')
                 .on('change', function() {
                     let fileName = $(this).val().split('\\').pop();
                     $(this).next('.custom-file-label').addClass("selected").html(fileName ||
                         'Choisir un nouveau fichier');
                 });
+
+            // Gestion spéciale pour les images multiples en édition
+            $('#editImageFiles').on('change', function() {
+                const files = Array.from(this.files || []);
+                const names = files.map(f => f.name).filter(Boolean);
+                let labelText = 'Choisir des images';
+                
+                if (names.length === 0) {
+                    labelText = 'Choisir des images';
+                } else if (names.length === 1) {
+                    labelText = names[0];
+                } else {
+                    labelText = `${names.length} fichiers sélectionnés`;
+                }
+                
+                $(this).next('.custom-file-label').addClass('selected').html(labelText);
+                
+                // Afficher la liste détaillée
+                const $customFile = $(this).closest('.custom-file');
+                let $info = $customFile.next('.file-selected-info');
+                if ($info.length === 0) {
+                    $info = $('<div class="file-selected-info mt-1 small text-muted"></div>');
+                    $customFile.after($info);
+                }
+                if (names.length > 0) {
+                    const maxShow = 5;
+                    const shown = names.slice(0, maxShow);
+                    const extra = names.length - shown.length;
+                    const list = shown.join(', ');
+                    $info.html(extra > 0 ? `Fichiers : ${list} et +${extra} autre(s)` : `Fichiers : ${list}`);
+                } else {
+                    $info.empty();
+                }
+            });
+
+            $('#editImageCoverFile').on('change', function() {
+                const fileName = $(this).val().split('\\').pop();
+                $(this).next('.custom-file-label').addClass("selected").html(fileName || 'Choisir une image de couverture');
+            });
 
             $(document).on('click', '.edit-prophetie-btn', function() {
                 const prophetieId = $(this).data('prophetie-id');
@@ -761,38 +801,65 @@
                                 $('#editCurrentPdf').show();
                                 $('#editCurrentAudio, #editCurrentVideo, #editCurrentLink')
                                     .hide();
-                            } else if (data.media && data.media.type === 'images') {
+                            } else if (mediaType === 'images') {
                                 $('#editMediaTypeImages').prop('checked', true).trigger('change');
                                 // Render existing images with checkboxes
                                 const container = $('#existingImagesContainer');
                                 container.empty();
                                 let imgs = [];
                                 try { imgs = JSON.parse(data.media.url_fichier || '[]') || []; } catch (e) { imgs = []; }
-                                imgs.forEach(function(path) {
-                                    const url = '/storage/' + path;
-                                    const id = 'del_' + btoa(path).replace(/[^a-zA-Z0-9]/g,'');
-                                    const col = $('<div class="col-6 col-md-4 col-lg-3 mb-2"></div>');
-                                    const card = $('<div class="border rounded p-2 h-100"></div>');
-                                    card.append('<img src="'+url+'" class="img-fluid mb-2" style="height:120px;object-fit:cover;width:100%" />');
-                                    const chk = $('<div class="custom-control custom-checkbox">\
-                                        <input type="checkbox" class="custom-control-input" id="'+id+'" name="existing_images_delete[]" value="'+path+'">\
-                                        <label class="custom-control-label" for="'+id+'">Supprimer</label>\
+                                
+                                if (imgs.length > 0) {
+                                    imgs.forEach(function(path) {
+                                        const url = '/storage/' + path;
+                                        const id = 'del_' + btoa(path).replace(/[^a-zA-Z0-9]/g,'');
+                                        const col = $('<div class="col-6 col-md-4 col-lg-3 mb-2"></div>');
+                                        const card = $('<div class="border rounded p-2 h-100"></div>');
+                                        card.append('<img src="'+url+'" class="img-fluid mb-2" style="height:120px;object-fit:cover;width:100%" />');
+                                        const chk = $('<div class="custom-control custom-checkbox">\
+                                            <input type="checkbox" class="custom-control-input" id="'+id+'" name="existing_images_delete[]" value="'+path+'">\
+                                            <label class="custom-control-label" for="'+id+'">Supprimer</label>\
+                                        </div>');
+                                        card.append(chk);
+                                        col.append(card);
+                                        container.append(col);
+                                    });
+                                } else {
+                                    container.html('<div class="col-12"><p class="text-muted">Aucune image existante</p></div>');
+                                }
+                                
+                                // Afficher l'image de couverture actuelle
+                                if (data.media.thumbnail) {
+                                    const coverInfo = $('<div class="alert alert-info mt-2">\
+                                        <small><strong>Image de couverture actuelle :</strong><br>\
+                                        ' + data.media.thumbnail.split('/').pop() + '</small>\
                                     </div>');
-                                    card.append(chk);
-                                    col.append(card);
-                                    container.append(col);
-                                });
+                                    $('#editImageCoverFile').closest('.form-group').append(coverInfo);
+                                }
                             }
                         }
                         $('#editprophetieModal').modal('show');
                     },
                     error: function() {
-                        alert('Erreur lors du chargement des données du témoignage');
+                        alert('Erreur lors du chargement des données de la prophétie');
                     }
                 });
             });
 
-            // ===== VISUALISATION DES TÉMOIGNAGES =====
+            // Nettoyer le modal d'édition à la fermeture
+            $('#editprophetieModal').on('hidden.bs.modal', function() {
+                // Réinitialiser les labels de fichiers
+                $('#editImageFiles').next('.custom-file-label').html('Choisir des images');
+                $('#editImageCoverFile').next('.custom-file-label').html('Choisir une image de couverture');
+                // Supprimer les infos de sélection
+                $('.file-selected-info').remove();
+                // Supprimer les alertes d'info de couverture
+                $('#editImageCoverFile').closest('.form-group').find('.alert-info').remove();
+                // Vider le conteneur d'images existantes
+                $('#existingImagesContainer').empty();
+            });
+
+            // ===== VISUALISATION DES PROPHÉTIES =====
             $(document).on('click', '.view-prophetie-btn, .prophetie-thumbnail', function() {
                 const prophetieUrl = $(this).data('prophetie-url');
                 const prophetieName = $(this).data('prophetie-name');
