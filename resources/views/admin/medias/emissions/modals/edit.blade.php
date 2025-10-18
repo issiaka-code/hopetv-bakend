@@ -30,6 +30,18 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+                    <div class="form-group">
+                        <label class="font-weight-bold">Image de couverture</label>
+                        <input type="file" name="image_couverture" id="editEmissionImageCouverture"
+                            class="form-control-file @error('image_couverture') is-invalid @enderror" accept="image/*">
+                        @error('image_couverture')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                        <div id="currentImageContainer" class="mt-2" style="display: none;">
+                            <p>Image actuelle :</p>
+                            <img id="currentEmissionImage" src="" alt="Image de couverture actuelle" class="img-fluid rounded" style="max-height: 200px;">
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary bg-secondary" data-dismiss="modal">Annuler</button>

@@ -1,21 +1,21 @@
-<!-- Modal pour ÉDITER un témoignage -->
-<div class="modal fade" id="editTemoignageModal" tabindex="-1" role="dialog" aria-labelledby="editTemoignageModalLabel"
+﻿<!-- Modal pour ÉDITER une prophétie -->
+<div class="modal fade" id="editprophetieModal" tabindex="-1" role="dialog" aria-labelledby="editprophetieModalLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-static" role="document">
         <div class="modal-content">
             <div class="modal-header bg-info text-dark">
-                <h5 class="modal-title" id="editTemoignageModalLabel">Modifier le témoignage</h5>
+                <h5 class="modal-title" id="editprophetieModalLabel">Modifier la prophétie</h5>
                 <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form id="editTemoignageForm" method="POST" enctype="multipart/form-data">
+            <form id="editprophetieForm" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 <div class="modal-body">
                     <div class="form-group">
                         <label class="font-weight-bold">Nom <span class="text-danger">*</span></label>
-                        <input type="text" name="nom" id="editTemoignageNom"
+                        <input type="text" name="nom" id="editprophetieNom"
                             class="form-control @error('nom') is-invalid @enderror" required>
                         @error('nom')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -24,7 +24,7 @@
 
                     <div class="form-group">
                         <label class="font-weight-bold">Description <span class="text-danger">*</span></label>
-                        <textarea name="description" id="editTemoignageDescription"
+                        <textarea name="description" id="editprophetieDescription"
                             class="form-control @error('description') is-invalid @enderror" rows="3" required></textarea>
                         @error('description')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -96,7 +96,7 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <small class="form-text text-muted">Formats acceptés: JPG, PNG, GIF (max 2MB)</small>
+                            <small class="form-text text-muted">Formats acceptÃ©s: JPG, PNG, GIF (max 2MB)</small>
 
                             <div id="editCurrentAudioThumbnail" class="mt-2">
                                 <small>Image actuelle: <span id="editCurrentAudioThumbnailName"></span></small>
@@ -161,10 +161,10 @@
                         <div class="form-group">
                             <label class="font-weight-bold">Image de couverture</label>
                             <div class="custom-file">
-                                <input type="file" name="image_couverture_video" id="editTemoignageThumbnail"
+                                <input type="file" name="image_couverture_video" id="editprophetieThumbnail"
                                     class="custom-file-input @error('image_couverture_video') is-invalid @enderror"
                                     accept="image/*">
-                                <label class="custom-file-label" for="editTemoignageThumbnail">Choisir une nouvelle
+                                <label class="custom-file-label" for="editprophetieThumbnail">Choisir une nouvelle
                                     image</label>
                                 @error('image_couverture_video')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -250,3 +250,4 @@
         </div>
     </div>
 </div>
+

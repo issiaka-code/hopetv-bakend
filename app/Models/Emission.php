@@ -10,11 +10,12 @@ class Emission extends Model
     use HasFactory;
 
     protected $fillable = [
+        'id_media',
         'nom',
         'description',
         'insert_by',
         'update_by',
-        'is_deleted'
+        'is_deleted',
     ];
 
     protected $casts = [
@@ -29,15 +30,20 @@ class Emission extends Model
         return $this->hasMany(EmissionItem::class, 'id_Emission')->where('is_deleted', false);
     }
 
+    public function media()
+    {
+        return $this->belongsTo(Media::class, 'id_media');
+    }
+
     /**
      * Relation avec les items actifs
      */
     public function activeItems()
     {
         return $this->hasMany(EmissionItem::class, 'id_Emission')
-                    ->where('is_deleted', false)
-                    ->where('is_active', true)
-                    ->orderBy('created_at', 'asc');
+            ->where('is_deleted', false)
+            ->where('is_active', true)
+            ->orderBy('created_at', 'asc');
     }
 
     /**
@@ -63,6 +69,7 @@ class Emission extends Model
     {
         return $query->where('is_deleted', false);
     }
+
     public function getVideosCountAttribute()
     {
         return $this->items()->count();
@@ -74,31 +81,5 @@ class Emission extends Model
     public function getActiveVideosCountAttribute()
     {
         return $this->items()->where('is_active', true)->count();
-    }
-
-    /**
-     * Calculer la durée totale des vidéos
-     */
-    public function getTotalDurationAttribute()
-    {
-        $totalSeconds = 0;
-        
-        foreach ($this->activeItems as $item) {
-            if ($item->duree_video) {
-                $timeParts = explode(':', $item->duree_video);
-                if (count($timeParts) === 3) {
-                    $hours = (int)$timeParts[0];
-                    $minutes = (int)$timeParts[1];
-                    $seconds = (int)$timeParts[2];
-                    $totalSeconds += ($hours * 3600) + ($minutes * 60) + $seconds;
-                }
-            }
-        }
-        
-        $hours = floor($totalSeconds / 3600);
-        $minutes = floor(($totalSeconds % 3600) / 60);
-        $seconds = $totalSeconds % 60;
-        
-        return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
     }
 }

@@ -41,6 +41,11 @@
                     <i data-feather="message-square"></i><span>Témoignages</span>
                 </a>
             </li>
+            <li class="{{ Route::is('propheties.*') ? 'active' : '' }}">
+                <a href="{{ route('propheties.index') }}" class="nav-link">
+                    <i data-feather="zap"></i><span>Prophéties</span>
+                </a>
+            </li>
             <li class="{{ Route::is('prieres.*') ? 'active' : '' }}">
                 <a href="{{ route('prieres.index') }}" class="nav-link">
                     <i data-feather="shield"></i><span>Prières</span>

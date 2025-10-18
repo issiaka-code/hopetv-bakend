@@ -4,175 +4,343 @@
 
 @push('styles')
     <style>
+        .emission-cover {
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+            height: 400px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .emission-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .emission-info {
+            padding: 25px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+
+        .emission-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
+
+        .emission-description {
+            font-size: 1.1rem;
+            color: #5a6c7d;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
         .video-card {
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
             border: none;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s ease;
             overflow: hidden;
             height: 100%;
+            background: white;
         }
 
         .video-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transform: translateY(-8px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
         }
 
         .video-thumbnail-container {
             overflow: hidden;
-            height: 180px;
+            height: 200px;
             position: relative;
+            background: #f8f9fa;
         }
 
         .video-thumbnail {
             cursor: pointer;
             height: 100%;
             width: 100%;
-        }
-
-        .video-thumbnail video,
-        .video-thumbnail img,
-        .video-thumbnail iframe {
             object-fit: cover;
-            height: 100%;
-            width: 100%;
-            transition: transform 0.3s;
+            transition: transform 0.4s ease;
         }
 
-        .video-card:hover .video-thumbnail video,
-        .video-card:hover .video-thumbnail img,
-        .video-card:hover .video-thumbnail iframe {
-            transform: scale(1.05);
+        .video-card:hover .video-thumbnail {
+            transform: scale(1.08);
         }
+
         .thumbnail-overlay {
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.35);
+            background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.7) 100%);
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-start;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            cursor: pointer;
+            padding: 20px;
+        }
+
+        .video-card:hover .thumbnail-overlay {
+            opacity: 1;
+        }
+
+        .play-icon {
+            background: rgba(255, 255, 255, 0.9);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s;
-            cursor: pointer;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
         }
-        .thumbnail-overlay i {
-            font-size: 2rem;
+
+        .play-icon i {
+            font-size: 1.2rem;
+            color: #e74c3c;
+            margin-left: 3px;
+        }
+
+        .video-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .video-description {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+
+        .video-actions {
+            padding: 15px 20px;
+            border-top: 1px solid #ecf0f1;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #bdc3c7;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .add-video-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .add-video-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .video-count-badge {
+            background: #e74c3c;
             color: white;
-        }
-        .video-thumbnail-container:hover .thumbnail-overlay {
-            opacity: 1;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
         }
     </style>
 @endpush
 
 @section('content')
     <div class="container-fluid">
+        <!-- En-tête avec bouton d'ajout -->
         <div class="row mb-4">
-            <div class="col-md-8">
-                <h2 class="font-weight-bold">{{ $emission->nom }}</h2>
-                <p class="text-muted">{{ $emission->description }}</p>
-            </div>
-            <div class="col-md-4 text-right">
-                <button class="btn btn-primary" data-toggle="modal" data-target="#addEmissionVideoModal">
-                    <i class="fa fa-plus"></i> Ajouter une vidéo
-                </button>
-            </div>
-        </div>
-        <div class="row">
-            @forelse($emission->items as $item)
-                <div class="col-md-3 mb-4">
-                    <div class="card video-card">
-                        <div class="video-thumbnail-container">
-                            @if (!empty($item->thumbnail))
-                                <img class="video-thumbnail" src="{{ $item->thumbnail_url }}" alt="Couverture vidéo">
-                                <div class="thumbnail-overlay open-video" data-video-url="{{ $item->type_video === 'video' ? asset('storage/emissions/videos/' . $item->video_url) : $item->video_url }}" data-video-type="{{ $item->type_video }}" data-description="{{ $item->description_video }}" data-title="{{ $item->titre_video }}">
-                                    <i class="fas fa-play-circle"></i>
-                                </div>
-                            @elseif ($item->type_video === 'video' && $item->video_url)
-                                <video class="video-thumbnail"
-                                    src="{{ asset('storage/emissions/videos/' . $item->video_url) }}" controls
-                                    muted></video>
-                                <div class="thumbnail-overlay open-video" data-video-url="{{ asset('storage/emissions/videos/' . $item->video_url) }}" data-video-type="video" data-description="{{ $item->description_video }}" data-title="{{ $item->titre_video }}">
-                                    <i class="fas fa-play-circle"></i>
-                                </div>
-                            @elseif($item->type_video === 'link' && $item->video_url)
-                                @php
-                                    $ytId = null;
-                                    $embedUrl = $item->video_url;
-                                    if (strpos($item->video_url, 'youtube.com') !== false || strpos($item->video_url, 'youtu.be') !== false) {
-                                        // Extraire l'ID YouTube côté Blade pour afficher une couverture
-                                        $pattern = '/^.*((youtu.be\\/)|(v\\/)|(\\/u\\/\\w\\/)|(embed\\/)|(watch\\?))\\??v?=?([^#&?]*).*/';
-                                        if (preg_match($pattern, $item->video_url, $matches) && strlen($matches[7]) === 11) {
-                                            $ytId = $matches[7];
-                                            $embedUrl = 'https://www.youtube.com/embed/' . $ytId;
-                                        }
-                                    }
-                                @endphp
-                                @if($ytId)
-                                    <img class="video-thumbnail" src="https://img.youtube.com/vi/{{ $ytId }}/hqdefault.jpg" alt="Couverture vidéo">
-                                    <div class="thumbnail-overlay open-video" data-video-url="{{ $embedUrl }}" data-video-type="link" data-description="{{ $item->description_video }}" data-title="{{ $item->titre_video }}">
-                                        <i class="fas fa-play-circle"></i>
-                                    </div>
-                                @else
-                                    <div class="bg-light d-flex align-items-center justify-content-center h-100 position-relative">
-                                        <span class="text-muted">Aperçu indisponible</span>
-                                        <div class="thumbnail-overlay open-video" data-video-url="{{ $embedUrl }}" data-video-type="link" data-description="{{ $item->description_video }}" data-title="{{ $item->titre_video }}">
-                                            <i class="fas fa-play-circle"></i>
-                                        </div>
-                                    </div>
-                                @endif
-                            @else
-                                <div class="bg-light d-flex align-items-center justify-content-center h-100">
-                                    <span class="text-muted">Aucun média</span>
-                                </div>
-                            @endif
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title font-weight-bold">{{ $item->titre_video }}</h5>
-                            <p class="card-text text-muted">{{ Str::limit($item->description_video, 30) }}</p>
-                            <div class="d-flex justify-content-between align-items-center my">
-                                <button class="btn btn-info btn-sm view-video-btn rounded"
-                                    data-video-url="{{ $item->type_video === 'video' ? asset('storage/emissions/videos/' . $item->video_url) : (isset($embedUrl) ? $embedUrl : $item->video_url) }}"
-                                    data-video-type="{{ $item->type_video }}"
-                                    data-description="{{ $item->description_video }}"
-                                    data-title="{{ $item->titre_video }}">
-                                    <i class="fa fa-eye"></i> Voir
-                                </button>
-                                
-                                <form action="{{ route('items.destroy', $item->id) }}"
-                                    method="POST" style="display:inline-block;" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm bg-danger"
-                                        onclick="return confirm('Supprimer cette vidéo ?')">
-                                        <i class="fa fa-trash"></i> Supprimer
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h3 font-weight-bold text-primary">Détails de l'émission</h1>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary add-video-btn" data-toggle="modal" data-target="#addEmissionVideoModal">
+                            <i class="fa fa-plus-circle mr-2"></i> Ajouter une vidéo
+                        </button>
                     </div>
                 </div>
-            @empty
-                <div class="col-12">
-                    <div class="alert alert-info">Aucune vidéo pour cette émission.</div>
+            </div>
+        </div>
+
+        <!-- Section principale avec image de couverture et contenu -->
+        <div class="row">
+            <!-- Colonne de gauche - Image de couverture -->
+            <div class="col-md-4 mb-4">
+                <div class="emission-cover">
+                    @if($emission->media && $emission->media->thumbnail)
+                        <img src="{{ asset('storage/' . $emission->media->thumbnail) }}" 
+                             alt="Couverture de l'émission {{ $emission->nom }}"
+                             onerror="this.style.display='none'; this.parentNode.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'">
+                    @else
+                        <div class="d-flex align-items-center justify-content-center h-100 text-white">
+                            <div class="text-center">
+                                <i class="fas fa-film fa-4x mb-3"></i>
+                                <p class="mb-0">Aucune image de couverture</p>
+                            </div>
+                        </div>
+                    @endif
                 </div>
-            @endforelse
+
+                <!-- Informations de l'émission -->
+                <div class="emission-info mt-4">
+                    <h2 class="emission-title">{{ $emission->nom }}</h2>
+                    <p class="emission-description">{{ $emission->description }}</p>
+                    
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="text-muted">
+                            <i class="fas fa-video mr-2"></i>
+                            {{ $emission->items->count() }} vidéo(s)
+                        </span>
+                        <span class="text-muted">
+                            <i class="fas fa-calendar mr-2"></i>
+                            Créée le {{ $emission->created_at->format('d/m/Y') }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Colonne de droite - Liste des vidéos -->
+            <div class="col-md-8">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="section-title">
+                        Vidéos de l'émission
+                        <span class="video-count-badge ml-2">{{ $emission->items->count() }}</span>
+                    </h3>
+                </div>
+
+                <div class="row">
+                    @forelse($emission->items as $item)
+                        <div class="col-lg-6 col-xl-4 mb-4">
+                            <div class="card video-card">
+                                <div class="video-thumbnail-container">
+                                    @if (!empty($item->thumbnail))
+                                        <img class="video-thumbnail" 
+                                             src="{{ $item->thumbnail_url }}" 
+                                             alt="Couverture vidéo {{ $item->titre_video }}">
+                                    @elseif ($item->type_video === 'video' && $item->video_url)
+                                        <video class="video-thumbnail" muted>
+                                            <source src="{{ asset('storage/emissions/videos/' . $item->video_url) }}" type="video/mp4">
+                                        </video>
+                                    @elseif($item->type_video === 'link' && $item->video_url)
+                                        @php
+                                            $ytId = null;
+                                            if (strpos($item->video_url, 'youtube.com') !== false || strpos($item->video_url, 'youtu.be') !== false) {
+                                                $pattern = '/^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/';
+                                                if (preg_match($pattern, $item->video_url, $matches) && strlen($matches[7]) === 11) {
+                                                    $ytId = $matches[7];
+                                                }
+                                            }
+                                        @endphp
+                                        @if($ytId)
+                                            <img class="video-thumbnail" 
+                                                 src="https://img.youtube.com/vi/{{ $ytId }}/hqdefault.jpg" 
+                                                 alt="Couverture YouTube">
+                                        @else
+                                            <div class="d-flex align-items-center justify-content-center h-100 bg-light">
+                                                <i class="fas fa-link fa-2x text-muted"></i>
+                                            </div>
+                                        @endif
+                                    @else
+                                        <div class="d-flex align-items-center justify-content-center h-100 bg-light">
+                                            <i class="fas fa-video-slash fa-2x text-muted"></i>
+                                        </div>
+                                    @endif
+                                    
+                                    <div class="thumbnail-overlay open-video" 
+                                         data-video-url="{{ $item->type_video === 'video' ? asset('storage/emissions/videos/' . $item->video_url) : $item->video_url }}" 
+                                         data-video-type="{{ $item->type_video }}" 
+                                         data-description="{{ $item->description_video }}" 
+                                         data-title="{{ $item->titre_video }}">
+                                        <div>
+                                            <div class="play-icon">
+                                                <i class="fas fa-play"></i>
+                                            </div>
+                                            <h6 class="text-white font-weight-bold mb-1">{{ $item->titre_video }}</h6>
+                                            <p class="text-light mb-0 small">{{ Str::limit($item->description_video, 60) }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="video-actions">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <button class="btn btn-outline-primary btn-sm view-video-btn rounded-pill"
+                                                data-video-url="{{ $item->type_video === 'video' ? asset('storage/emissions/videos/' . $item->video_url) : $item->video_url }}"
+                                                data-video-type="{{ $item->type_video }}"
+                                                data-description="{{ $item->description_video }}"
+                                                data-title="{{ $item->titre_video }}">
+                                            <i class="fa fa-eye mr-1"></i> Voir
+                                        </button>
+                                        
+                                        <form action="{{ route('items.destroy', $item->id) }}"
+                                              method="POST" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill"
+                                                    onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette vidéo ?')">
+                                                <i class="fa fa-trash mr-1"></i> Supprimer
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="col-12">
+                            <div class="empty-state">
+                                <i class="fas fa-video-slash"></i>
+                                <h4 class="text-muted">Aucune vidéo disponible</h4>
+                            </div>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
         </div>
     </div>
 
     @include('admin.medias.emissions.modals.add_video')
-    
     @include('admin.medias.emissions.modals.view_video')
 @endsection
+
 
 @push('scripts')
     <script>
         $(document).ready(function() {
-            // Gestion du changement de type de vidéo pour l'ajout
-            $('input[name="type_video"]').change(function() {
+                        $('input[name="type_video"]').change(function() {
                 if ($(this).val() === 'upload') {
                     $('.video-upload-section').show();
                     $('.video-link-section').hide();
@@ -184,7 +352,6 @@
                     $('.video-link-section').show();
                     $('#video_file').prop('required', false);
                     $('#video_url').prop('required', true);
-                    // Masquer le champ image de couverture pour les liens
                     $('.thumbnail-section').hide();
                 }
             });

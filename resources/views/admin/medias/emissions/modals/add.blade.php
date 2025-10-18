@@ -29,6 +29,14 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+                    <div class="form-group">
+                        <label class="font-weight-bold">Image de couverture <span class="text-danger">*</span></label>
+                        <input type="file" name="image_couverture" id="addEmissionImageCouverture"
+                            class="form-control @error('image_couverture') is-invalid @enderror" accept="image/*" required>
+                        @error('image_couverture')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                    </div>
 
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle"></i>

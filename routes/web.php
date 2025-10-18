@@ -13,6 +13,7 @@ use App\Http\Controllers\LienUtileController;
 use App\Http\Controllers\ParametreController;
 use App\Http\Controllers\ProgrammeController;
 use App\Http\Controllers\TemoignageController;
+use App\Http\Controllers\ProphetieController;
 use App\Http\Controllers\HomeCharityController;
 use App\Http\Controllers\EmissionItemController;
 use App\Http\Controllers\EnseignementController;
@@ -54,6 +55,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('temoignages', TemoignageController::class);
     Route::post('temoignages/{id}/publish', [TemoignageController::class, 'publish'])->name('temoignages.publish');
     Route::post('temoignages/{id}/unpublish', [TemoignageController::class, 'unpublish'])->name('temoignages.unpublish');    
+    Route::resource('propheties', ProphetieController::class);
+    Route::post('propheties/{id}/publish', [ProphetieController::class, 'publish'])->name('propheties.publish');
+    Route::post('propheties/{id}/unpublish', [ProphetieController::class, 'unpublish'])->name('propheties.unpublish');
 
     Route::resource('programmes', ProgrammeController::class);
     Route::post('programmes/{id}/publish', [ProgrammeController::class, 'publish'])->name('programmes.publish');

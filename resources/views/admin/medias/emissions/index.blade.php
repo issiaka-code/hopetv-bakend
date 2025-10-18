@@ -374,11 +374,16 @@
                                         <div class="emission-thumbnail position-relative"
                                             data-emission-id="{{ $emission->id }}"
                                             data-emission-name="{{ $emission->nom }}">
-
-                                            <div class="default-thumbnail d-flex align-items-center justify-content-center"
-                                                style="width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                                                <i class="fas fa-broadcast-tower text-white" style="font-size: 3rem;"></i>
-                                            </div>
+                                            @if ($emission->media && $emission->media->thumbnail)
+                                                <img src="{{ asset('storage/' . $emission->media->thumbnail) }}"
+                                                    alt="Thumbnail de {{ $emission->nom }}">
+                                            @else
+                                                <div class="default-thumbnail d-flex align-items-center justify-content-center"
+                                                    style="width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                                    <i class="fas fa-broadcast-tower text-white"
+                                                        style="font-size: 3rem;"></i>
+                                                </div>
+                                            @endif
 
                                             <div class="thumbnail-overlay">
                                                 <i class="fas fa-eye"></i>
@@ -484,7 +489,15 @@
                     success: function(data) {
                         $('#editEmissionNom').val(data.nom);
                         $('#editEmissionDescription').val(data.description);
-                        $('#editEmissionEtat').prop('checked', data.etat);
+                        if (data.media.thumbnail) {
+                            const thumbnailName = data.media.thumbnail.split('/').pop();
+                            $('#editCurrentThumbnailName').text(thumbnailName);
+                            $('#editCurrentThumbnailPreview').attr('src', '/storage/' +
+                                data.media.thumbnail).show();
+                            $('#editCurrentThumbnail').show();
+                        } else {
+                            $('#editCurrentThumbnail').hide();
+                        }
                         $('#editEmissionForm').attr('action',
                             "{{ route('emissions.update', ':id') }}".replace(':id',
                                 emissionId));

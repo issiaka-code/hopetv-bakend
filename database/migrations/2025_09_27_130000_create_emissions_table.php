@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('emissions', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('id_media')->constrained('medias');
             $table->string('nom');
             $table->text('description');
             $table->foreignId('insert_by')->constrained('users');

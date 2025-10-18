@@ -8,10 +8,11 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('medias', function (Blueprint $table) {
+        Schema::create('propheties', function (Blueprint $table) {
             $table->id();
-            $table->text('url_fichier')->nullable();
-            $table->enum('type', ['video', 'audio', 'pdf', 'link','images', 'emission'])->nullable();
+            $table->foreignId('id_media')->constrained('medias');
+            $table->string('nom');
+            $table->text('description');
             $table->foreignId('insert_by')->constrained('users');
             $table->foreignId('update_by')->constrained('users');
             $table->boolean('is_deleted')->default(false);
@@ -21,6 +22,6 @@ return new class extends Migration
 
     public function down()
     {
-        Schema::dropIfExists('medias');
+        Schema::dropIfExists('propheties');
     }
 };
