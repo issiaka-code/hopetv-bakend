@@ -92,7 +92,10 @@ function handleEditMedia(
          button.data("prophetie-id") ||
           button.data("home-charity-id") ||
         button.data('media-id') ||
-        button.data("podcast-id");
+        button.data("podcast-id")
+        ;
+
+    
 
     if (!entityId) {
         console.error("Aucun ID trouvé sur le bouton");

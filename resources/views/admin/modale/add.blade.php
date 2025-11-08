@@ -162,7 +162,7 @@
                 </div>
 
                 <input type="hidden" id="input-emission-id" name="inputemissionid" >
-                <!-- ✅ FOOTER -->
+                <!-- ✅ FOOTER -->  
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary bg-secondary" data-dismiss="modal">Annuler</button>
                     <button type="submit" onclick="this.disabled=true; this.form.submit();" class="btn btn-primary">

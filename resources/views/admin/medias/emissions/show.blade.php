@@ -4,10 +4,246 @@
 
 @push('styles')
 <style>
-    /* (tes styles restent inchangés) */
+    /* === STRUCTURE GLOBALE === */
+    #emissions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
 
+    .emission-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border: none;
+        transition: transform 0.2s, box-shadow 0.2s;
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .emission-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    /* === MINIATURE === */
+    .emission-thumbnail-container {
+        overflow: hidden;
+        height: 180px;
+        position: relative;
+        background-color: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .emission-thumbnail {
+        cursor: pointer;
+        height: 100%;
+        width: 100%;
+    }
+
+    .emission-thumbnail video,
+    .emission-thumbnail img,
+    .emission-thumbnail iframe {
+        object-fit: cover;
+        height: 100%;
+        width: 100%;
+        transition: transform 0.3s;
+    }
+
+    .default-thumbnail {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        width: 100%;
+        font-size: 3rem;
+        color: white;
+    }
+
+    .emission-card:hover .emission-thumbnail video,
+    .emission-card:hover .emission-thumbnail img {
+        transform: scale(1.05);
+    }
+
+    /* === OVERLAY === */
+    .thumbnail-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s;
+        cursor: pointer;
+    }
+
+    .thumbnail-overlay i {
+        font-size: 3rem;
+        color: white;
+    }
+
+    .emission-thumbnail:hover .thumbnail-overlay {
+        opacity: 1;
+    }
+
+    /* === BADGES === */
+    .media-type-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+        font-size: 0.8rem;
+    }
+
+    .badge-success {
+        background-color: #28a745;
+    }
+
+    .badge-secondary {
+        background-color: #6c757d;
+    }
+
+    /* === CONTENU === */
+    .emission-card .card-title {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .emission-card .card-text {
+        height: 40px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+
+    .btn-group .btn {
+        border-radius: 5px;
+        margin-left: 2px;
+        padding: 0.25rem 0.5rem;
+    }
+
+    /* === ÉTAT VIDE === */
+    .empty-state {
+        padding: 3rem 1rem;
+    }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 1400px) {
+        #emissions-grid {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        }
+    }
+
+    @media (max-width: 1200px) {
+        #emissions-grid {
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .emission-thumbnail-container {
+            height: 160px;
+        }
+    }
+
+    @media (max-width: 992px) {
+        #emissions-grid {
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .emission-thumbnail-container {
+            height: 140px;
+        }
+
+        .card-title {
+            font-size: 1rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        #emissions-grid {
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 0.875rem;
+        }
+
+        .emission-thumbnail-container {
+            height: 120px;
+        }
+
+        .btn-group .btn {
+            padding: 0.2rem 0.4rem;
+            font-size: 0.8rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        #emissions-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .emission-thumbnail-container {
+            height: 180px;
+        }
+
+        .btn-group {
+            width: 100%;
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+
+        .btn-group .btn {
+            margin: 0 2px;
+            flex: 1;
+            max-width: 45px;
+        }
+    }
+
+    @media (max-width: 400px) {
+        .emission-thumbnail-container {
+            height: 150px;
+        }
+
+        .btn {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+        }
+    }
+
+    /* === DIVERS === */
+    .modal-header .close {
+        padding: 0.5rem;
+        margin: -0.5rem -0.5rem -0.5rem auto;
+    }
+
+    @media (hover: none) {
+        .emission-card:hover {
+            transform: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .thumbnail-overlay {
+            opacity: 0.7;
+        }
+    }
+
+    @media (min-resolution: 2dppx) {
+        .thumbnail-overlay i {
+            font-size: 2.5rem;
+        }
+    }
 </style>
 @endpush
+
 
 @section('content')
 <section class="section" style="margin-top: -25px;">
@@ -34,9 +270,7 @@
             <div class="col-12">
                 <div class="d-flex justify-content-between align-items-center section-header">
                     <h2 class="section-title">Médias disponibles</h2>
-                    <button type="button" class="btn btn-primary" data-toggle="modal" 
-                    data-target="#addstoreModal" data-route="{{ route('emissionsitem.store') }}" 
-                    data-media-types="audio,video_link,video_file,images,pdf">
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addstoreModal" data-route="{{ route('emissionsitem.store') }}" data-media-types="audio,video_link,video_file,images,pdf" data-emission-id="{{ $id }}">
                         <i class="fas fa-plus"></i> Ajouter un média
                     </button>
                 </div>
@@ -44,7 +278,7 @@
         </div>
 
         {{-- Filtres --}}
-        <div class="row mb-4">
+        {{-- <div class="row mb-4">
             <form method="GET" action="{{ route('emissions.index') }}" class="w-100">
                 <div class="row g-2 d-flex flex-row justify-content-end align-items-center">
                     <div class="col-3">
@@ -75,7 +309,7 @@
                     </div>
                 </div>
             </form>
-        </div>
+        </div> --}}
 
         {{-- Liste des éléments --}}
         <div class="row">
@@ -91,17 +325,17 @@
                     $media = $item->media;
                     $media_type = $media->type ?? '';
                     $media_url = $media->url_fichier ?? '';
-                    $thumbnail_url = $media->thumbnail_url ?? '';
+                    $thumbnail_url = $media->thumbnail ?? '';
                     $is_published = $item->is_active ?? false;
                     @endphp
 
                     <div class="emission-grid-item">
                         <div class="card emission-card">
                             <div class="emission-thumbnail-container">
-                                <div class="emission-thumbnail position-relative" data-emission-id="{{ $emissionid }}"  data-media-id="{{ $id }}">
-
+                                <div class="emission-thumbnail position-relative" data-emission-id="{{ $id }}" data-media-id="{{ $id }}">
+                                   
                                     @if ($thumbnail_url)
-                                    <img src="{{ $thumbnail_url }}" alt="{{ $nom }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    <img src="{{ asset('storage/' . $thumbnail_url) }}" alt="{{ $nom }}" style="width: 100%; height: 100%; object-fit: cover;">
                                     @else
                                     <div class="default-thumbnail d-flex align-items-center justify-content-center" style="width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                                         @if ($media_type === 'audio')
@@ -150,7 +384,7 @@
                                             <i class="fas fa-edit"></i>
                                         </button>
 
-                                        <form action="{{ route('items.destroy', $id) }}" method="POST" class="d-inline delete-form">
+                                        <form action="{{ route('emissionsitem.destroy', $id) }}" method="POST" class="d-inline delete-form">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-outline-danger rounded" title="Supprimer" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet emission ?')">
@@ -226,25 +460,8 @@
             handleMediaView($(this), "{{ route('emissions.items.voir', ':id') }}");
         });
 
-        $('#addstoreForm').on('submit', function(e) {
-             let emissionId = $('.emission-thumbnail').data('emission-id');
-            if (emissionId) {
-                $('#input-emission-id').val(emissionId);
-            } else {
-                e.preventDefault();
-                alert("Impossible d’envoyer le formulaire : ID d’émission introuvable !");
-            }
-        });
 
-         $('#editForm').on('submit', function(e) {
-             let emissionId = $('.emission-thumbnail').data('emission-id');
-            if (emissionId) {
-                $('#input-emission-id').val(emissionId);
-            } else {
-                e.preventDefault();
-                alert("Impossible d’envoyer le formulaire : ID d’émission introuvable !");
-            }
-        });
+
     });
 
 </script>

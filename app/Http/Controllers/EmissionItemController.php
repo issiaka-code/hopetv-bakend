@@ -25,16 +25,17 @@ class EmissionItemController extends Controller
 
     public function index($id)
     {
-        $emissionItems = EmissionItem::with('media','emission')
+        $emissionItems = EmissionItem::with('media', 'emission')
             ->where('is_deleted', false)
             ->latest()
             ->paginate(10); // 10 éléments par page
 
-        return view('admin.medias.emissions.show', compact('emissionItems'));
+        return view('admin.medias.emissions.show', compact('emissionItems', 'id'));
     }
 
     public function store(Request $request)
     {
+
         $emission = Emission::where('is_deleted', false)
             ->findOrFail($request->inputemissionid);
 
@@ -62,6 +63,8 @@ class EmissionItemController extends Controller
         }
         $media = $result;
 
+
+
         $created = EmissionItem::create([
             'id_Emission' => $emission->id,
             'nom' => $request->nom,
@@ -73,25 +76,32 @@ class EmissionItemController extends Controller
         ]);
 
         notify()->success('Succès', 'Vidéo ajoutée avec succès à l\'émission "' . $emission->nom . '".');
-        return redirect()->route('emissions.show', $emission->id);
+        return redirect()->route('show-media-emission', $emission->id);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Emission $emission, EmissionItem $item)
+    public function edit($id)
     {
-        return response()->json($item);
+        $emissionItem = EmissionItem::where('is_deleted', false)
+            ->findOrFail($id);
+        $emissionItem->load('media');
+        return response()->json([
+            'nom' => $emissionItem->nom,
+            'description' => $emissionItem->description,
+            'media' => $emissionItem->media,
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request,EmissionItem $item)
+    public function update(Request $request, $id)
     {
-         $emission = Emission::where('is_deleted', false)
-            ->findOrFail($request->inputemissionid);
-            
+        $item = EmissionItem::where('is_deleted', false)
+            ->findOrFail($id);
+
         $media = $item->media;
         $result = $this->mediaService->updateMedia($request, $media);
 
@@ -124,14 +134,17 @@ class EmissionItemController extends Controller
         ]);
 
         notify()->success('Succès', 'Vidéo mise à jour avec succès.');
-        return redirect()->route('emissions.show', $emission->id);
+        return redirect()->route('show-media-emission', $item->emission->id);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Emission $emission, EmissionItem $item)
+    public function destroy($id)
     {
+          $item = EmissionItem::where('is_deleted', false)
+            ->findOrFail($id);
+            
         try {
             DB::beginTransaction();
 
@@ -142,7 +155,7 @@ class EmissionItemController extends Controller
 
             DB::commit();
             notify()->success('Succès', 'Vidéo supprimée avec succès.');
-            return redirect()->route('emissions.show', $emission->id);
+            return redirect()->route('show-media-emission',$item->emission->id);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Erreur lors de la suppression de la vidéo: ' . $e->getMessage());
@@ -180,69 +193,67 @@ class EmissionItemController extends Controller
     }
 
     public function voir($id)
-{
-    try {
-        // Charger l'item avec son média et l'émission associée
-        $item = EmissionItem::with(['media', 'emission'])->findOrFail($id);
-        $media = $item->media;
+    {
+        try {
+            // Charger l'item avec son média et l'émission associée
+            $item = EmissionItem::with(['media', 'emission'])->findOrFail($id);
+            $media = $item->media;
 
-        // Vérifie si le média est prêt (si tu gères un statut de traitement)
-        if (isset($media->status) && $media->status !== 'ready') {
-            return response()->json([
-                'status' => 'processing',
-                'message' => 'Le média est en cours de traitement. Veuillez réessayer plus tard.'
-            ], 200);
-        }
-
-        $url = $media->url_fichier;
-
-        // 🎥 Si le média est un lien (YouTube, Vimeo, etc.)
-        if ($media->type === 'link' && !empty($url)) {
-            if (str_contains($url, 'youtube.com/watch?v=')) {
-                $url = str_replace('watch?v=', 'embed/', $url);
-            } elseif (str_contains($url, 'youtu.be/')) {
-                $url = str_replace('youtu.be/', 'www.youtube.com/embed/', $url);
-            } elseif (str_contains($url, 'vimeo.com/')) {
-                $videoId = basename(parse_url($url, PHP_URL_PATH));
-                $url = "https://player.vimeo.com/video/" . $videoId;
+            // Vérifie si le média est prêt (si tu gères un statut de traitement)
+            if (isset($media->status) && $media->status !== 'ready') {
+                return response()->json([
+                    'status' => 'processing',
+                    'message' => 'Le média est en cours de traitement. Veuillez réessayer plus tard.'
+                ], 200);
             }
-        }
 
-        // 🖼️ Si le média contient plusieurs images
-        if ($media->type === 'images') {
-            $images = json_decode($media->url_fichier, true) ?? [];
-            $imageUrls = array_map(fn($path) => asset('storage/' . $path), $images);
-        }
+            $url = $media->url_fichier;
 
-        // 📦 Construction de la réponse JSON
-        return response()->json([
-            'status' => 'ready',
-            'data' => [
-                'id' => $item->id,
-                'nom' => $item->nom,
-                'description' => $item->description,
-                'emission' => [
-                    'id' => $item->emission->id,
-                    'titre' => $item->emission->nom ?? 'Sans titre',
+            // 🎥 Si le média est un lien (YouTube, Vimeo, etc.)
+            if ($media->type === 'link' && !empty($url)) {
+                if (str_contains($url, 'youtube.com/watch?v=')) {
+                    $url = str_replace('watch?v=', 'embed/', $url);
+                } elseif (str_contains($url, 'youtu.be/')) {
+                    $url = str_replace('youtu.be/', 'www.youtube.com/embed/', $url);
+                } elseif (str_contains($url, 'vimeo.com/')) {
+                    $videoId = basename(parse_url($url, PHP_URL_PATH));
+                    $url = "https://player.vimeo.com/video/" . $videoId;
+                }
+            }
+
+            // 🖼️ Si le média contient plusieurs images
+            if ($media->type === 'images') {
+                $images = json_decode($media->url_fichier, true) ?? [];
+                $imageUrls = array_map(fn($path) => asset('storage/' . $path), $images);
+            }
+
+            // 📦 Construction de la réponse JSON
+            return response()->json([
+                'status' => 'ready',
+                'data' => [
+                    'id' => $item->id,
+                    'nom' => $item->nom,
+                    'description' => $item->description,
+                    'emission' => [
+                        'id' => $item->emission->id,
+                        'titre' => $item->emission->nom ?? 'Sans titre',
+                    ],
+                    'media' => [
+                        'url' => $media->type === 'images'
+                            ? ($imageUrls ?? [])
+                            : (in_array($media->type, ['audio', 'video', 'pdf'])
+                                ? asset('storage/' . $url)
+                                : $url),
+                        'thumbnail' => $media->thumbnail ? asset('storage/' . $media->thumbnail) : null,
+                        'type' => $media->type,
+                    ],
                 ],
-                'media' => [
-                    'url' => $media->type === 'images'
-                        ? ($imageUrls ?? [])
-                        : (in_array($media->type, ['audio', 'video', 'pdf'])
-                            ? asset('storage/' . $url)
-                            : $url),
-                    'thumbnail' => $media->thumbnail ? asset('storage/' . $media->thumbnail) : null,
-                    'type' => $media->type,
-                ],
-            ],
-        ], 200);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Erreur lors du chargement de l’émission : ' . $e->getMessage(),
-        ], 500);
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Erreur lors du chargement de l’émission : ' . $e->getMessage(),
+            ], 500);
+        }
     }
-}
-
 }

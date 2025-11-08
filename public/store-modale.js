@@ -4,6 +4,17 @@ $("#addstoreModal").on("show.bs.modal", function (event) {
     const button = $(event.relatedTarget);
     const modal = $(this);
 
+    let emissionId = button.data('emission-id');
+   
+    if (emissionId) {
+        $("#input-emission-id").val(emissionId);
+    } else {
+        alert(
+            "Impossible d’envoyer le formulaire : ID d’émission introuvable !"
+        );
+        return;
+    }
+
     // Route dynamique
     const route = button.data("route");
     modal.find("#addstoreForm").attr("action", route);
@@ -74,11 +85,10 @@ $("#addstoreModal .btn-group input[type=radio]").change(function () {
     const $input = $(this); // le radio cliqué
 
     showMediaSection(type);
-    const labelId = $input.closest("label").attr("id"); 
-    const inputId = $input.closest("input").attr("id"); 
-   
+    const labelId = $input.closest("label").attr("id");
+    const inputId = $input.closest("input").attr("id");
+
     $("#addstoreModal").find(inputId).addClass("active");
-  
 });
 
 // Gestion des labels des fichiers (y compris images multiples)
