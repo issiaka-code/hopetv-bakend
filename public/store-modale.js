@@ -8,13 +8,7 @@ $("#addstoreModal").on("show.bs.modal", function (event) {
    
     if (emissionId) {
         $("#input-emission-id").val(emissionId);
-    } else {
-        alert(
-            "Impossible d’envoyer le formulaire : ID d’émission introuvable !"
-        );
-        return;
-    }
-
+    } 
     // Route dynamique
     const route = button.data("route");
     modal.find("#addstoreForm").attr("action", route);
