@@ -60,6 +60,7 @@ Route::middleware('auth')->group(function () {
     Route::post('propheties/{id}/unpublish', [ProphetieController::class, 'unpublish'])->name('propheties.unpublish');
 
     Route::resource('programmes', ProgrammeController::class);
+    Route::get('programmes/{id}/voir', [ProgrammeController::class, 'voirProgramme'])->name('programmes.voir');
     Route::post('programmes/{id}/publish', [ProgrammeController::class, 'publish'])->name('programmes.publish');
     Route::post('programmes/{id}/unpublish', [ProgrammeController::class, 'unpublish'])->name('programmes.unpublish');
 
@@ -99,6 +100,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('liens-utiles', LienUtileController::class);
     Route::patch('/{id}/toggle-status', [InfoBulleController::class, 'toggleStatus'])->name('info-bulles.toggle-status');
     Route::resource('info_importantes', InfoImportanteController::class);
+    Route::get('info_importantes/{id}/voir', [InfoImportanteController::class, 'voirInfoImportante'])->name('info_importantes.voir');
     Route::post('info_importantes/{id}/toggle_status', [InfoImportanteController::class, 'toggleStatus'])->name('info_importantes.toggle_status');
 
     // Etablissements (Siège / Annexe)

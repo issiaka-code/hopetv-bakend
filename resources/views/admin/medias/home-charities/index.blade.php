@@ -429,12 +429,10 @@
                                                 ) }}
                                     </span>
 
-                                    <!-- Badge statut publication (uniquement pour les vidéos) -->
-                                    @if (in_array($media_type, ['video_link', 'video_file']))
+                                    <!-- Badge statut publication -->
                                     <span class="badge {{ $is_published ? 'badge-success' : 'badge-secondary' }}" style="position: absolute; top: 10px; left: 10px; z-index: 10;">
                                         {{ $is_published ? 'Publié' : 'Non publié' }}
                                     </span>
-                                    @endif
                                 </div>
                             </div>
 
@@ -462,13 +460,11 @@
                                             </button>
                                         </form>
 
-                                        <!-- Switch Publication (uniquement pour les vidéos) -->
-                                        @if (in_array($media_type, ['video_link', 'video_file']))
-                                        <button class="btn btn-sm btn-outline-{{ $is_published ? 'success' : 'secondary' }} toggle-publish-btn mx-1 rounded" title="{{ $is_published ? 'Dépublier' : 'Publier' }} la vidéo" data-home-charity-id="{{ $id }}" data-status="{{ $is_published ? 1 : 0 }}">
+                                        <!-- Switch Publication -->
+                                        <button class="btn btn-sm btn-outline-{{ $is_published ? 'success' : 'secondary' }} toggle-publish-btn mx-1 rounded" title="{{ $is_published ? 'Dépublier' : 'Publier' }}" data-home-charity-id="{{ $id }}" data-status="{{ $is_published ? 1 : 0 }}">
                                             <i class="fas fa-{{ $is_published ? 'toggle-on' : 'toggle-off' }}"></i>
                                             <span class="p-1">{{ $is_published ? 'Publié' : 'Non publié' }}</span>
                                         </button>
-                                        @endif
                                     </div>
                                 </div>
                             </div>

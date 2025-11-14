@@ -295,7 +295,9 @@
             <div class="col-12">
                 <div class="d-flex justify-content-between align-items-center section-header">
                     <h2 class="section-title">Vidéos disponibles</h2>
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addVideoModal">
+                    <button type="button" class="btn btn-primary" data-toggle="modal"
+                     data-target="#addstoreModal" data-route="{{ route('videos.store') }}"
+                      data-media-types="video_file,video_link" data-section-name="vidéo">
                         <i class="fas fa-plus"></i> Ajouter une vidéo
                     </button>
                 </div>
@@ -314,8 +316,8 @@
                     <div class="col-md-3 my-1">
                         <select name="type" class="form-control">
                             <option value="">Tous</option>
-                            <option value="file" {{ request('type') === 'file' ? 'selected' : '' }}>Fichiers</option>
-                            <option value="link" {{ request('type') === 'link' ? 'selected' : '' }}>Liens</option>
+                            <option value="video_file" {{ request('type') === 'video_file' ? 'selected' : '' }}>Fichiers vidéo</option>
+                            <option value="video_link" {{ request('type') === 'video_link' ? 'selected' : '' }}>Liens vidéo</option>
                         </select>
                     </div> <!-- Bouton recherche -->
                     <div class="col-md-2 my-1">
@@ -342,34 +344,36 @@
                         <div class="card video-card">
                             <!-- Miniature -->
                             <div class="video-thumbnail-container">
-                                <div class="video-thumbnail position-relative" data-video-id={{ $video->id }} data-video-url="{{ $video->media_type === 'video_file' ? $video->video_url : $video->thumbnail_url }}" data-thumbnail-url="{{ $video->thumbnail_url }}" data-video-name="{{ $video->nom }}" data-media-type="{{ $video->media_type }}" data-is-link="{{ $video->media_type === 'video_link' ? 'true' : 'false' }}" data-has-thumbnail="{{ $video->has_thumbnail ? 'true' : 'false' }}">
-
-
-                                    @if ($video->media_type === 'video_link')
-                                    <iframe src="{{ $video->thumbnail_url }}" class="w-100 h-100" frameborder="0" allowfullscreen></iframe>
+                                <div class="video-thumbnail position-relative" data-video-id="{{ $video->id }}" data-section-name="vidéo">
+                                    <!-- Afficher l'image de couverture ou icône par défaut -->
+                                    @if ($video->has_thumbnail && $video->thumbnail_url)
+                                    <img src="{{ $video->thumbnail_url }}" alt="{{ $video->nom }}" style="width: 100%; height: 100%; object-fit: cover;">
                                     @else
-                                    @if ($video->has_thumbnail)
-                                    <img src="{{ $video->thumbnail_url }}" alt="{{ $video->nom }}" class="w-100 h-100">
-                                    @else
-                                    <video src="{{ $video->video_url }}"></video>
-                                    @endif
+                                    <div class="default-thumbnail d-flex align-items-center justify-content-center" style="width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                        @if($video->media_type === 'video_link' && $video->thumbnail_url)
+                                        <iframe src="{{ $video->thumbnail_url }}" width="100%" height="100%" frameborder="0"></iframe>
+                                        @elseif($video->media_type === 'video_file')
+                                        <i class="fas fa-video text-white" style="font-size: 3rem;"></i>
+                                        @else
+                                        <i class="fas fa-video text-white" style="font-size: 3rem;"></i>
+                                        @endif
+                                    </div>
                                     @endif
 
                                     <div class="thumbnail-overlay">
                                         <i class="fas fa-play-circle"></i>
                                     </div>
+
+                                    <span class="badge badge-primary media-type-badge">
+                                        {{ $video->media_type === 'video_link' ? 'Lien vidéo' : 'Fichier vidéo' }}
+                                    </span>
+
+                                    <!-- Badge statut publication -->
+                                    <span class="badge {{ $video->is_published ? 'badge-success' : 'badge-secondary' }}" style="position: absolute; top: 10px; left: 10px; z-index: 10;">
+                                        {{ $video->is_published ? 'Publié' : 'Non publié' }}
+                                    </span>
                                 </div>
                             </div>
-
-                            <!-- Badge type média -->
-                            <span class="badge badge-primary media-type-badge">
-                                {{ $video->media_type === 'video_link' ? 'Lien vidéo' : 'Fichier vidéo' }}
-                            </span>
-
-                            <!-- Badge statut publication -->
-                            <span class="badge {{ $video->is_published ? 'badge-success' : 'badge-secondary' }}" style="position: absolute; top: 10px; left: 10px; z-index: 10;">
-                                {{ $video->is_published ? 'Publié' : 'Non publié' }}
-                            </span>
 
                             <!-- Corps de la carte -->
                             <div class="card-body">
@@ -388,12 +392,12 @@
 
                                     <div class="btn-group">
                                         <!-- Bouton Voir -->
-                                        <button class="btn btn-sm btn-outline-info view-video-btn rounded" data-video-id={{ $video->id }} title="Voir la vidéo" data-video-url="{{ $video->thumbnail_url }}" data-video-name="{{ $video->nom }}" data-title="{{ $video->nom }}" data-description="{{ $video->description }}" data-media-type="{{ $video->media_type }}">
+                                        <button class="btn btn-sm btn-outline-info view-video-btn rounded" data-video-id="{{ $video->id }}" data-section-name="vidéo" title="Voir la vidéo">
                                             <i class="fas fa-eye"></i>
                                         </button>
 
                                         <!-- Bouton Modifier -->
-                                        <button class="btn btn-sm btn-outline-primary edit-video-btn mx-1 rounded" title="Modifier la vidéo" data-video-id="{{ $video->id }}">
+                                        <button class="btn btn-sm btn-outline-primary edit-video-btn mx-1 rounded" title="Modifier la vidéo" data-video-id="{{ $video->id }}" data-media-types="video_file,video_link" data-section-name="vidéo">
                                             <i class="fas fa-edit"></i>
                                         </button>
 
@@ -405,7 +409,8 @@
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
-                                        <button class="btn btn-sm btn-outline-{{ $video->is_published ? 'success' : 'secondary' }} toggle-publish-video-btn mx-1 rounded" title="{{ $video->is_published ? 'Dépublier' : 'Publier' }} la vidéo" data-video-id="{{ $video->id }}" data-status="{{ $video->is_published ? 1 : 0 }}">
+                                        <!-- Switch Publication -->
+                                        <button class="btn btn-sm btn-outline-{{ $video->is_published ? 'success' : 'secondary' }} toggle-publish-video-btn mx-1 rounded" title="{{ $video->is_published ? 'Dépublier' : 'Publier' }}" data-video-id="{{ $video->id }}" data-status="{{ $video->is_published ? 1 : 0 }}">
                                             <i class="fas fa-{{ $video->is_published ? 'toggle-on' : 'toggle-off' }}"></i>
                                             <span class="p-1">{{ $video->is_published ? 'Publié' : 'Non publié' }}</span>
                                         </button>
@@ -435,11 +440,6 @@
     </div>
 </section>
 
-<!-- Modals (à garder tels quels) -->
-@include('admin.medias.videos.modals.add')
-@include('admin.medias.videos.modals.edit')
-@include('admin.medias.videos.modals.view')
-
 @endsection
 
 @push('scripts')
@@ -464,307 +464,21 @@
                     alert('Erreur lors du changement de statut de la vidéo');
                 });
         });
-        // ===== GESTION DU FORMULAIRE D'AJOUT =====
-
-        // Basculer entre fichier et lien pour l'ajout
-        $('input[name="video_type"]', '#addVideoForm').change(function() {
-            if ($(this).val() === 'file') {
-                $('#addVideoFileSection').removeClass('d-none');
-                $('#addVideoLinkSection').addClass('d-none');
-                $('#addVideoFichier').attr('required', 'required');
-                $('#addVideoLink').removeAttr('required');
-            } else {
-                $('#addVideoFileSection').addClass('d-none');
-                $('#addVideoLinkSection').removeClass('d-none');
-                $('#addVideoFichier').removeAttr('required');
-                $('#addVideoLink').attr('required', 'required');
-            }
-        });
-
-        // Gestion du fichier sélectionné pour l'ajout
-        $('#addVideoFichier').on('change', function() {
-            let fileName = $(this).val().split('\\').pop();
-            $(this).next('.custom-file-label').addClass("selected").html(fileName);
-        });
-
-        // Gestion de l'image de couverture pour l'ajout
-        $('#addVideoThumbnail').on('change', function() {
-            let fileName = $(this).val().split('\\').pop();
-            $(this).next('.custom-file-label').addClass("selected").html(fileName);
-        });
-
-        // Gestion de l'image de couverture pour l'ajout
-        $('#addVideoThumbnaillink').on('change', function() {
-            let fileName = $(this).val().split('\\').pop();
-            $(this).next('.custom-file-label').addClass("selected").html(fileName);
-        });
-
-        // Réinitialiser le formulaire d'ajout à la fermeture
-        $('#addVideoModal').on('hidden.bs.modal', function() {
-            $('#addVideoForm')[0].reset();
-            $('#addVideoFichier').next('.custom-file-label').html('Choisir un fichier');
-            $('#addVideoThumbnail').next('.custom-file-label').html('Choisir une image');
-
-            // Réinitialiser les boutons radio visuellement et logiquement
-            const fileBtn = $('#addVideoTypeFile').closest('label');
-            const linkBtn = $('#addVideoTypeLink').closest('label');
-
-            linkBtn.removeClass('active');
-            fileBtn.addClass('active');
-
-            $('#addVideoTypeFile').prop('checked', true).trigger('change');
-        });
-
-        // ===== GESTION DU FORMULAIRE D'ÉDITION =====
-
-        // Basculer entre fichier et lien pour l'édition
-        $('input[name="video_type"]', '#editVideoForm').change(function() {
-            if ($(this).val() === 'file') {
-                $('#editVideoFileSection').removeClass('d-none');
-                $('#editVideoLinkSection').addClass('d-none');
-                $('#editVideoLink').removeAttr('required');
-            } else {
-                $('#editVideoFileSection').addClass('d-none');
-                $('#editVideoLinkSection').removeClass('d-none');
-                $('#editVideoLink').attr('required', 'required');
-            }
-        });
-
-        // Gestion du fichier sélectionné pour l'édition
-        $('#editVideoFichier').on('change', function() {
-            let fileName = $(this).val().split('\\').pop();
-            $(this).next('.custom-file-label').addClass("selected").html(fileName ||
-                'Choisir un nouveau fichier');
-        });
-
-        // Gestion de l'image de couverture pour l'édition
-        $('#editVideoThumbnail').on('change', function() {
-            let fileName = $(this).val().split('\\').pop();
-            $(this).next('.custom-file-label').addClass("selected").html(fileName ||
-                'Choisir une nouvelle image');
-        });
-
-          // Gestion de l'image de couverture pour l'edition
-        $('#editVideoThumbnaillink').on('change', function() {
-            let fileName = $(this).val().split('\\').pop();
-            $(this).next('.custom-file-label').addClass("selected").html(fileName);
-        });
-
-
-        // Ouvrir le modal d'édition et charger les données
+        // ===== ÉDITION DES VIDEOS =====
         $(document).on('click', '.edit-video-btn', function() {
-            const videoId = $(this).data('video-id');
-
-            // Charger les données de la vidéo via AJAX
-            $.ajax({
-                url: "{{ route('videos.edit', ':id') }}".replace(':id', videoId)
-                , method: 'GET'
-                , success: function(data) {
-                    // Remplir les champs
-                    $('#editVideoNom').val(data.nom);
-                    $('#editVideoDescription').val(data.description);
-
-                    // Configurer l'action du formulaire
-                    $('#editVideoForm').attr('action'
-                        , "{{ route('videos.update', ':id') }}".replace(':id', videoId));
-
-                    // Déterminer le type et configurer les sections
-                    if (data.media) {
-                        if (data.media.type === 'link') {
-                          
-                            // C'est un lien
-                            $('#editVideoTypeLink').prop('checked', true);
-                            $('#editVideoTypeLinkLabel').addClass('active');
-                            $('#editVideoTypeFileLabel').removeClass('active');
-                            $('#editVideoTypeLink').trigger('change');
-
-                            $('#editVideoLink').val(data.media.url_fichier);
-                            $('#editCurrentLinkValue').text(data.media.url_fichier);
-                            $('#editViewCurrentLink').attr('href', data.media.url_fichier);
-                            $('#editCurrentLink').show();
-                            $('#editCurrentVideo').hide();
-                            if (data.media.thumbnail) {
-                                const thumbnailName = data.media.thumbnail.split('/').pop();
-                                $('#editCurrentThumbnailNamelink').text(thumbnailName);
-                                $('#editCurrentThumbnailPreviewlink').attr('src', '/storage/' +
-                                    data.media.thumbnail).show();
-                             
-                            }
-
-                        } else {
-                            // C'est un fichier
-                            $('#editVideoTypeFile').prop('checked', true);
-                            $('#editVideoTypeFileLabel').addClass('active');
-                            $('#editVideoTypeLinkLabel').removeClass('active');
-                            $('#editVideoTypeFile').trigger('change');
-
-                            const fileName = data.media.url_fichier.split('/').pop();
-                            $('#editCurrentVideoName').text(fileName);
-                            $('#editViewCurrentVideo').data('video-url', '/storage/' + data
-                                .media.url_fichier);
-                            $('#editCurrentVideo').show();
-                            $('#editCurrentLink').hide();
-
-                            // Gestion de l'image de couverture
-                            if (data.media.thumbnail) {
-                                const thumbnailName = data.media.thumbnail.split('/').pop();
-                                $('#editCurrentThumbnailName').text(thumbnailName);
-                                $('#editCurrentThumbnailPreview').attr('src', '/storage/' +
-                                    data.media.thumbnail).show();
-                                $('#editCurrentThumbnail').show();
-                            } else {
-                                $('#editCurrentThumbnail').hide();
-                            }
-                        }
-                    }
-
-                    // Ouvrir le modal
-                    $('#editVideoModal').modal('show');
-                }
-                , error: function() {
-                    alert('Erreur lors du chargement des données de la vidéo');
-                }
-            });
-        });
-
-        $(document).on('click', '#editViewCurrentVideo', function() {
-            const videoUrl = $(this).data('video-url');
-            $('#modalVideoPlayer').attr('src', videoUrl);
-            $('#videoViewModal').modal('show');
-        });
-
-
-        // ===== GESTION COMMUNE =====
-
-        $(document).on('click', '.view-video-btn, .video-thumbnail', function() {
-            const videoId = $(this).data('video-id');
-            // ⚙️ On génère dynamiquement la route Laravel
-            const url = "{{ route('videos.voirVideo', ':id') }}".replace(':id', videoId);
-
-            // Affiche un état de chargement
-            $('#videoTitle').text('Chargement...');
-            $('#videoDescription').text('');
-            $('#modalVideoPlayer').attr('src', '');
-            $('#modalIframePlayer').attr('src', '');
-            $('#videoViewModal').modal('show');
-
-            $.ajax({
-                url: url
-                , method: 'GET'
-                , success: function(response) {
-                    if (!response.success) {
-                        $('#videoTitle').text('Vidéo en cours de traitement');
-                        $('#videoDescription').text(response.message);
-                        $('#videoPlayerContainer, #iframePlayerContainer').addClass('d-none');
-                        return;
-                    }
-
-                    const video = response.video;
-
-                    $('#videoTitle').text(video.nom);
-                    $('#videoDescription').text(video.description);
-                    $('#mediaTypeBadge').text(video.type === 'link' ? 'Lien externe' : 'Fichier local');
-
-                    $('#videoPlayerContainer').addClass('d-none');
-                    $('#iframePlayerContainer').addClass('d-none');
-
-                    if (video.type === 'link') {
-                        $('#modalIframePlayer').attr('src', video.url);
-                        $('#iframePlayerContainer').removeClass('d-none');
-                    } else {
-                        $('#modalVideoPlayer').attr('src', video.url);
-                        $('#videoPlayerContainer').removeClass('d-none');
-                    }
-
-                    $('#downloadVideoBtn').off('click').on('click', function() {
-                        window.open(video.url, '_blank');
-                    });
-                }
-                , error: function() {
-                    $('#videoTitle').text('Erreur');
-                    $('#videoDescription').text('Impossible de charger la vidéo.');
-                }
-            });
-        });
-
-
-        // Gestion des images multiples
-        $('#addImageFiles').on('change', function() {
-            const files = Array.from(this.files);
-            const $customFile = $(this).closest('.custom-file');
-            const $label = $(this).next('.custom-file-label');
-
-            if (files.length === 0) {
-                $label.removeClass('selected').html('Choisir des images');
-                $customFile.next('.file-selected-info').remove();
-                return;
-            }
-
-            // Mise à jour du label
-            $label.addClass('selected').html(
-                files.length === 1 ? files[0].name : `${files.length} fichiers sélectionnés`
+            handleEditMedia(
+                $(this)
+                , "{{ route('videos.edit', ':id') }}"
+                , "{{ route('videos.update', ':id') }}"
+                , '#editModal'
             );
-
-            // Création de l'affichage des fichiers
-            let $info = $customFile.next('.file-selected-info');
-            if ($info.length === 0) {
-                $info = $(`
-            <div class="file-selected-info mt-2 p-2 bg-light rounded">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <strong>Fichiers sélectionnés (${files.length})</strong>
-                </div>
-                <div class="file-list"></div>
-            </div>
-        `);
-                $customFile.after($info);
-            }
-
-            // Affichage de la liste
-            let fileListHtml = files.slice(0, 5).map(file => `
-        <div class="d-flex justify-content-between align-items-center border-bottom py-1">
-            <span class="text-truncate" style="max-width: 70%;" title="${file.name}">
-                ${file.name}
-            </span>
-            <small class="text-muted">${formatFileSize(file.size)}</small>
-        </div>
-    `).join('');
-
-            if (files.length > 5) {
-                fileListHtml += `
-            <div class="text-center mt-1">
-                <small class="text-muted">+ ${files.length - 5} autres fichiers</small>
-            </div>
-        `;
-            }
-
-            $info.find('.file-list').html(fileListHtml);
         });
 
-        // Nettoyage quand le modal se ferme
-        $('#videoViewModal').on('hidden.bs.modal', function() {
-            const videoPlayer = $('#modalVideoPlayer')[0];
-            if (videoPlayer) {
-                videoPlayer.pause();
-                videoPlayer.currentTime = 0;
-            }
-
-            $('#modalVideoPlayer').attr('src', '');
-            $('#modalIframePlayer').attr('src', '');
-
-            $('#videoPlayerContainer').addClass('d-none');
-            $('#iframePlayerContainer').addClass('d-none');
-
-            $('#videoTitle').text('');
-            $('#videoDescription').text('');
-            $('#mediaTypeBadge').text('');
+        // ===== VISUALISATION DES VIDEOS =====
+        $(document).on('click', '.view-video-btn, .video-thumbnail', function() {
+            handleMediaView($(this), "{{ route('videos.voirVideo', ':id') }}");
         });
 
-
-        // Amélioration de l'expérience mobile
-        if ('ontouchstart' in document.documentElement) {
-            $('.btn').addClass('touch-optimized');
-            $('.modal').addClass('touch-modal');
-        }
     });
 
 </script>

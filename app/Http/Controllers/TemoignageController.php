@@ -213,9 +213,8 @@ class TemoignageController extends Controller
     {
         $temoignage = Temoignage::findOrFail($id);
 
-        // Vérifier que c'est une vidéo
-        if (!$temoignage->media || !in_array($temoignage->media->type, ['video', 'link'])) {
-            Alert::error('Erreur', 'Seules les vidéos peuvent être publiées/dépubliées.');
+        if (!$temoignage->media) {
+            Alert::error('Erreur', 'Aucun média associé.');
             return redirect()->back();
         }
 
@@ -225,7 +224,7 @@ class TemoignageController extends Controller
                 'update_by' => auth()->id(),
             ]);
 
-            notify()->success('Succès', 'Témoignage vidéo publié avec succès.');
+            notify()->success('Succès', 'Témoignage publié avec succès.');
             if ($request->ajax()) {
                 return response()->json(['success' => true]);
             }
@@ -244,9 +243,8 @@ class TemoignageController extends Controller
     {
         $temoignage = Temoignage::findOrFail($id);
 
-        // Vérifier que c'est une vidéo
-        if (!$temoignage->media || !in_array($temoignage->media->type, ['video', 'link'])) {
-            Alert::error('Erreur', 'Seules les vidéos peuvent être publiées/dépubliées.');
+        if (!$temoignage->media) {
+            Alert::error('Erreur', 'Aucun média associé.');
             return redirect()->back();
         }
 
@@ -256,7 +254,7 @@ class TemoignageController extends Controller
                 'update_by' => auth()->id(),
             ]);
 
-            notify()->success('Succès', 'Témoignage vidéo dépublié avec succès.');
+            notify()->success('Succès', 'Témoignage dépublié avec succès.');
             if ($request->ajax()) {
                 return response()->json(['success' => true]);
             }

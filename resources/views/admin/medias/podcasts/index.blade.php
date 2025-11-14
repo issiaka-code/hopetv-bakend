@@ -317,7 +317,9 @@
             <div class="col-12">
                 <div class="d-flex justify-content-between align-items-center section-header">
                     <h2 class="section-title">Podcasts disponibles</h2>
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addPodcastModal">
+                    <button type="button" class="btn btn-primary" data-toggle="modal"
+                     data-target="#addstoreModal" data-route="{{ route('podcasts.store') }}"
+                      data-media-types="audio,video_file,video_link" data-section-name="podcast">
                         <i class="fas fa-plus"></i> Ajouter un podcast
                     </button>
                 </div>
@@ -337,10 +339,8 @@
                         <select name="type" class="form-control">
                             <option value="">Tous</option>
                             <option value="audio" {{ request('type') === 'audio' ? 'selected' : '' }}>Audio</option>
-                            <option value="video_file" {{ request('type') === 'video_file' ? 'selected' : '' }}>Fichiers
-                                vidéo</option>
-                            <option value="video_link" {{ request('type') === 'video_link' ? 'selected' : '' }}>Liens
-                                vidéo</option>
+                            <option value="video_file" {{ request('type') === 'video_file' ? 'selected' : '' }}>Fichiers vidéo</option>
+                            <option value="video_link" {{ request('type') === 'video_link' ? 'selected' : '' }}>Liens vidéo</option>
                         </select>
                     </div>
                     <!-- Bouton recherche -->
@@ -366,7 +366,7 @@
                     <div class="podcast-grid-item">
                         <div class="card podcast-card">
                             <div class="podcast-thumbnail-container">
-                                <div class="podcast-thumbnail position-relative" data-podcast-id="{{ $podcast->id }}" data-podcast-url="{{ $podcast->thumbnail_url }}" data-media-url="{{ $podcast->media_url }}" data-podcast-name="{{ $podcast->nom }}" data-media-type="{{ $podcast->media_type }}" data-has-thumbnail="{{ $podcast->has_thumbnail ? 'true' : 'false' }}">
+                                <div class="podcast-thumbnail position-relative" data-podcast-id="{{ $podcast->id }}" data-section-name="podcast" data-podcast-url="{{ $podcast->thumbnail_url }}" data-media-url="{{ $podcast->media_url }}" data-podcast-name="{{ $podcast->nom }}" data-media-type="{{ $podcast->media_type }}" data-has-thumbnail="{{ $podcast->has_thumbnail ? 'true' : 'false' }}">
 
                                     <!-- Afficher l'image de couverture ou icône par défaut -->
                                     @if ($podcast->has_thumbnail)
@@ -379,6 +379,10 @@
                                         <iframe src="{{ $podcast->thumbnail_url }}" width="100%" height="100%" frameborder="0"></iframe>
                                         @elseif($podcast->media_type === 'video_file')
                                         <i class="fas fa-video text-white" style="font-size: 3rem;"></i>
+                                        @elseif($podcast->media_type === 'pdf')
+                                        <i class="fas fa-file-pdf text-white" style="font-size: 3rem;"></i>
+                                        @elseif($podcast->media_type === 'images')
+                                        <i class="fas fa-images text-white" style="font-size: 3rem;"></i>
                                         @endif
                                     </div>
                                     @endif
@@ -388,21 +392,25 @@
                                     </div>
 
                                     <span class="badge badge-primary media-type-badge">
-                                        @if ($podcast->media_type === 'audio')
-                                        Audio
-                                        @elseif ($podcast->media_type === 'video_link')
-                                        Lien vidéo
-                                        @elseif ($podcast->media_type === 'video_file')
-                                        Fichier vidéo
-                                        @endif
+                                        {{ ucfirst(
+                                                    $podcast->media_type === 'audio'
+                                                        ? 'Audio'
+                                                        : ($podcast->media_type === 'pdf'
+                                                            ? 'PDF'
+                                                            : ($podcast->media_type === 'video_link'
+                                                                ? 'Lien vidéo'
+                                                                : ($podcast->media_type === 'video_file'
+                                                                    ? 'Fichier vidéo'
+                                                                    : ($podcast->media_type === 'images'
+                                                                        ? 'Images'
+                                                                        : $podcast->media_type)))),
+                                                ) }}
                                     </span>
 
-                                    <!-- Badge statut publication (uniquement pour les vidéos) -->
-                                    @if(in_array($podcast->media_type, ['video_link', 'video_file']))
+                                    <!-- Badge statut publication -->
                                     <span class="badge {{ $podcast->is_published ? 'badge-success' : 'badge-secondary' }}" style="position: absolute; top: 10px; left: 10px; z-index: 10;">
                                         {{ $podcast->is_published ? 'Publié' : 'Non publié' }}
                                     </span>
-                                    @endif
                                 </div>
                             </div>
 
@@ -420,10 +428,10 @@
                                     </small>
 
                                     <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-info view-podcast-btn rounded" data-podcast-id="{{ $podcast->id }}" title="Voir le podcast" data-podcast-url="{{ $podcast->thumbnail_url }}" data-media-url="{{ $podcast->media_url }}" data-podcast-name="{{ $podcast->nom }}" data-title="{{ $podcast->nom }}" data-description="{{ $podcast->description }}" data-media-type="{{ $podcast->media_type }}" data-has-thumbnail="{{ $podcast->has_thumbnail ? 'true' : 'false' }}">
+                                        <button class="btn btn-sm btn-outline-info view-podcast-btn rounded" data-podcast-id="{{ $podcast->id }}" data-section-name="podcast" title="Voir le podcast">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-outline-primary edit-podcast-btn mx-1 rounded" title="Modifier le podcast" data-podcast-id="{{ $podcast->id }}">
+                                        <button class="btn btn-sm btn-outline-primary edit-podcast-btn mx-1 rounded" title="Modifier le podcast" data-podcast-id="{{ $podcast->id }}" data-media-types="audio,video_file,video_link" data-section-name="podcast">
                                             <i class="fas fa-edit"></i>
                                         </button>
 
@@ -434,13 +442,11 @@
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
-                                        <!-- Switch Publication (uniquement pour les vidéos) -->
-                                        @if(in_array($podcast->media_type, ['video_link', 'video_file']))
-                                        <button class="btn btn-sm btn-outline-{{ $podcast->is_published ? 'success' : 'secondary' }} toggle-publish-podcast-btn mx-1 rounded" title="{{ $podcast->is_published ? 'Dépublier' : 'Publier' }} la vidéo" data-podcast-id="{{ $podcast->id }}" data-status="{{ $podcast->is_published ? 1 : 0 }}">
+                                        <!-- Switch Publication -->
+                                        <button class="btn btn-sm btn-outline-{{ $podcast->is_published ? 'success' : 'secondary' }} toggle-publish-podcast-btn mx-1 rounded" title="{{ $podcast->is_published ? 'Dépublier' : 'Publier' }}" data-podcast-id="{{ $podcast->id }}" data-status="{{ $podcast->is_published ? 1 : 0 }}">
                                             <i class="fas fa-{{ $podcast->is_published ? 'toggle-on' : 'toggle-off' }}"></i>
                                             <span class="p-1">{{ $podcast->is_published ? 'Publié' : 'Non publié' }}</span>
                                         </button>
-                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -467,10 +473,6 @@
     </div>
 </section>
 
-<!-- Modals -->
-@include('admin.medias.podcasts.modals.add')
-@include('admin.medias.podcasts.modals.edit')
-@include('admin.medias.podcasts.modals.view')
 @endsection
 
 @push('scripts')
@@ -564,205 +566,19 @@
 
         // ===== ÉDITION DES PODCASTS =====
         $(document).on('click', '.edit-podcast-btn', function() {
-            const podcastId = $(this).data('podcast-id');
-            $.ajax({
-                url: "{{ route('podcasts.edit', ':id') }}".replace(':id', podcastId)
-                , method: 'GET'
-                , success: function(data) {
-                    $('#editPodcastnom').val(data.nom);
-                    $('#editPodcastDescription').val(data.description);
-                    $('#editPodcastForm').attr('action'
-                        , "{{ route('podcasts.update', ':id') }}".replace(':id'
-                            , podcastId));
-
-                    if (data.media) {
-                        let mediaType = data.media.type;
-
-                        // Réinitialiser toutes les classes actives
-                        $('#editMediaTypeAudioLabel, #editMediaTypeVideoFileLabel, #editMediaTypeVideoLinkLabel').removeClass('active');
-
-                        if (mediaType === 'audio') {
-                            $('#editMediaTypeAudio').prop('checked', true).trigger('change');
-                            $('#editMediaTypeAudioLabel').addClass('active');
-
-                            $('#editCurrentAudioName').text(data.media.url_fichier.split('/').pop());
-                            $('#editCurrentAudio').show();
-                            $('#editCurrentVideo, #editCurrentLink').hide();
-
-                            if (data.media.thumbnail) {
-                                const thumbnailName = data.media.thumbnail.split('/').pop();
-                                $('#editCurrentAudioThumbnailName').text(thumbnailName);
-                                $('#editCurrentAudioThumbnailPreview').attr('src', '/storage/' + data.media.thumbnail).show();
-                                $('#editCurrentAudioThumbnail').show();
-                            } else {
-                                $('#editCurrentAudioThumbnail').hide();
-                            }
-                        } else if (mediaType === 'video') {
-                            $('#editMediaTypeVideoFile').prop('checked', true).trigger('change');
-                            $('#editMediaTypeVideoFileLabel').addClass('active');
-
-                            $('#editCurrentVideoName').text(data.media.url_fichier.split('/').pop());
-                            $('#editCurrentVideo').show();
-                            $('#editCurrentAudio, #editCurrentLink').hide();
-
-                            if (data.media.thumbnail) {
-                                const thumbnailName = data.media.thumbnail.split('/').pop();
-                                $('#editCurrentVideoThumbnailName').text(thumbnailName);
-                                $('#editCurrentVideoThumbnailPreview').attr('src', '/storage/' + data.media.thumbnail).show();
-                                $('#editCurrentVideoThumbnail').show();
-                            } else {
-                                $('#editCurrentVideoThumbnail').hide();
-                            }
-                        } else if (mediaType === 'link') {
-                            $('#editMediaTypeVideoLink').prop('checked', true).trigger('change');
-                            $('#editMediaTypeVideoLinkLabel').addClass('active');
-
-                            $('#editVideoLink').val(data.media.url_fichier);
-                            $('#editCurrentLinkValue').text(data.media.url_fichier);
-                            $('#editViewCurrentLink').attr('href', data.media.url_fichier);
-                            $('#editCurrentLink').show();
-                            $('#editCurrentAudio, #editCurrentVideo').hide();
-
-                            if (data.media.thumbnail) {
-                                const thumbnailName = data.media.thumbnail.split('/').pop();
-                                $('#editCurrentLinkThumbnailName').text(thumbnailName);
-                                $('#editCurrentLinkThumbnailPreview').attr('src', '/storage/' + data.media.thumbnail).show();
-                                $('#editCurrentLinkThumbnail').show();
-                            } else {
-                                $('#editCurrentLinkThumbnail').hide();
-                            }
-                        }
-                    }
-
-                    $('#editPodcastModal').modal('show');
-                }
-                , error: function() {
-                    alert('Erreur lors du chargement des données du podcast');
-                }
-            });
+            handleEditMedia(
+                $(this)
+                , "{{ route('podcasts.edit', ':id') }}"
+                , "{{ route('podcasts.update', ':id') }}"
+                , '#editModal'
+            );
         });
+
         // ===== VISUALISATION DES PODCASTS =====
         $(document).on('click', '.view-podcast-btn, .podcast-thumbnail', function() {
-            const podcastId = $(this).data('podcast-id'); // l’ID du podcast cliqué
-
-            $.ajax({
-                url: "{{ route('podcasts.voir', ':id') }}".replace(':id', podcastId), // utilise la route Laravel
-                method: 'GET'
-                , success: function(response) {
-                    if (response.status === 'processing') {
-                        Swal.fire({
-                            icon: 'info'
-                            , title: 'En traitement'
-                            , text: response.message
-                            , confirmButtonText: 'OK'
-                        });
-                        return;
-                    }
-
-                    if (response.status === 'error') {
-                        Swal.fire({
-                            icon: 'error'
-                            , title: 'Erreur'
-                            , text: response.message
-                        });
-                        return;
-                    }
-
-                    // Si tout est prêt
-                    const podcast = response.podcast;
-                    const media = podcast.media;
-
-                    $('#podcastTitle').text(podcast.nom);
-                    $('#podcastDescription').text(podcast.description);
-
-                    // Réinitialiser tous les lecteurs
-                    $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer').addClass('d-none');
-                    $('#modalAudioPlayer, #modalVideoPlayer, #modalIframePlayer').attr('src', '');
-
-                    if (media.type === 'audio') {
-                        $('#modalAudioPlayer').attr('src', '/storage/' + media.url).get(0).load();
-                        $('#audioPlayerContainer').removeClass('d-none');
-                    } else if (media.type === 'video') {
-                        $('#modalVideoPlayer').attr('src', '/storage/' + media.url).get(0).load();
-                        $('#videoPlayerContainer').removeClass('d-none');
-                    } else if (media.type === 'link') {
-                        $('#modalIframePlayer').attr('src', media.url);
-                        $('#iframePlayerContainer').removeClass('d-none');
-                    }
-
-                    $('#podcastViewModal').modal('show');
-                }
-                , error: function() {
-                    Swal.fire({
-                        icon: 'error'
-                        , title: 'Erreur'
-                        , text: 'Impossible de charger le média.'
-                    });
-                }
-            });
+            handleMediaView($(this), "{{ route('podcasts.voir', ':id') }}");
         });
 
-
-        // ===== NETTOYAGE DU MODAL =====
-        $('#podcastViewModal').on('hidden.bs.modal', function() {
-            // Arrêter tous les médias
-            $('#modalAudioPlayer').get(0).pause();
-            $('#modalVideoPlayer').get(0).pause();
-
-            // Réinitialiser les sources
-            $('#modalAudioPlayer').attr('src', '');
-            $('#modalVideoPlayer').attr('src', '');
-            $('#modalIframePlayer').attr('src', '');
-
-            // Masquer tous les lecteurs
-            $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer').addClass(
-                'd-none');
-
-            // Vider les informations
-            $('#podcastTitle, #podcastDescription, #mediaTypeBadge').text('');
-        });
-
-        // ===== TÉLÉCHARGEMENT =====
-        $('#downloadPodcastBtn').on('click', function() {
-            const mediaType = $('#mediaTypeBadge').text();
-            let downloadUrl = '';
-
-            if (mediaType === 'Audio') {
-                downloadUrl = $('#modalAudioPlayer').attr('src');
-            } else if (mediaType === 'Vidéo locale') {
-                downloadUrl = $('#modalVideoPlayer').attr('src');
-            }
-
-            if (downloadUrl) {
-                const link = document.createElement('a');
-                link.href = downloadUrl;
-                link.download = $('#podcastTitle').text() +
-                    (mediaType === 'Audio' ? '.mp3' : '.mp4');
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            } else if (mediaType === 'Vidéo en ligne') {
-                window.open($('#modalIframePlayer').attr('src'), '_blank');
-            } else {
-                alert('Téléchargement non disponible');
-            }
-        });
-
-        // ===== LECTURE AUTOMATIQUE =====
-        $('#podcastViewModal').on('shown.bs.modal', function() {
-            const audioPlayer = $('#modalAudioPlayer').get(0);
-            const videoPlayer = $('#modalVideoPlayer').get(0);
-
-            if (audioPlayer && !$('#audioPlayerContainer').hasClass('d-none')) {
-                audioPlayer.play().catch(function(error) {
-                    console.log('Lecture audio automatique bloquée:', error);
-                });
-            } else if (videoPlayer && !$('#videoPlayerContainer').hasClass('d-none')) {
-                videoPlayer.play().catch(function(error) {
-                    console.log('Lecture vidéo automatique bloquée:', error);
-                });
-            }
-        });
     });
 
 </script>

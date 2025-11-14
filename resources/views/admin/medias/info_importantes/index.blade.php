@@ -322,7 +322,9 @@
                 <div class="col-12">
                     <div class="d-flex justify-content-between align-items-center section-header">
                         <h2 class="section-title">Informations Importantes</h2>
-                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addInfoModal">
+                        <button type="button" class="btn btn-primary" data-toggle="modal"
+                            data-target="#addstoreModal" data-route="{{ route('info_importantes.store') }}"
+                            data-media-types="audio,video_file" data-section-name="information importante">
                             <i class="fas fa-plus"></i> Ajouter une information
                         </button>
                     </div>
@@ -343,7 +345,7 @@
                             <select name="type" class="form-control">
                                 <option value="">Tous</option>
                                 <option value="audio" {{ request('type') === 'audio' ? 'selected' : '' }}>Audio</option>
-                                <option value="video" {{ request('type') === 'video' ? 'selected' : '' }}>Vidéo</option>
+                                <option value="video_file" {{ request('type') === 'video_file' ? 'selected' : '' }}>Fichiers vidéo</option>
                             </select>
                         </div>
 
@@ -379,26 +381,18 @@
                             <div class="info-grid-item">
                                 <div class="card info-card">
                                     <div class="info-thumbnail-container">
-                                        <div class="info-thumbnail position-relative"
-                                            data-info-url="{{ $info->thumbnail_url }}"
-                                            data-video-url="{{ $info->video_url }}"
-                                            data-info-name="{{ $info->nom }}"
-                                            data-media-type="{{ $info->media_type }}"
-                                            data-has-thumbnail="{{ $info->has_thumbnail ? 'true' : 'false' }}">
-
-                                            @if ($info->media_type === 'audio')
-                                                <div class="audio-thumbnail">
-                                                    <i class="fas fa-music"></i>
+                                        <div class="info-thumbnail position-relative" data-info-id="{{ $info->id }}" data-section-name="information importante">
+                                            <!-- Afficher l'image de couverture ou icône par défaut -->
+                                            @if ($info->has_thumbnail && $info->thumbnail_url)
+                                                <img src="{{ $info->thumbnail_url }}" alt="{{ $info->nom }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            @else
+                                                <div class="default-thumbnail d-flex align-items-center justify-content-center" style="width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                                    @if ($info->media_type === 'audio')
+                                                        <i class="fas fa-music text-white" style="font-size: 3rem;"></i>
+                                                    @elseif($info->media_type === 'video_file')
+                                                        <i class="fas fa-video text-white" style="font-size: 3rem;"></i>
+                                                    @endif
                                                 </div>
-                                            @elseif ($info->media_type === 'video')
-                                                @if ($info->has_thumbnail)
-                                                    <img src="{{ $info->thumbnail_url }}" alt="{{ $info->nom }}" style="width: 100%; height: 100%; object-fit: cover;">
-                                                @else
-                                                    <video src="{{ $info->video_url }}" controls
-                                                        style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f8f9fa;">
-                                                        <i class="fas fa-video" style="font-size: 3rem; color: #4e73df;"></i>
-                                                    </video>
-                                                @endif
                                             @endif
 
                                             <div class="thumbnail-overlay">
@@ -406,11 +400,7 @@
                                             </div>
 
                                             <span class="badge badge-primary media-type-badge">
-                                                @if ($info->media_type === 'audio')
-                                                    Audio
-                                                @elseif ($info->media_type === 'video')
-                                                    Vidéo
-                                                @endif
+                                                {{ $info->media_type === 'audio' ? 'Audio' : 'Fichier vidéo' }}
                                             </span>
 
                                             <span class="badge {{ $info->is_active ? 'badge-success' : 'badge-danger' }} status-badge">
@@ -434,15 +424,11 @@
 
                                             <div class="btn-group">
                                                 <button class="btn btn-sm btn-outline-info view-info-btn rounded"
-                                                    data-info-url="{{ $info->thumbnail_url }}"
-                                                    data-info-name="{{ $info->nom }}"
-                                                    data-title="{{ $info->nom }}"
-                                                    data-description="{{ $info->description }}"
-                                                    data-media-type="{{ $info->media_type }}">
+                                                    data-info-id="{{ $info->id }}" data-section-name="information importante" title="Voir l'information">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                                 <button class="btn btn-sm btn-outline-primary edit-info-btn mx-1 rounded"
-                                                    data-info-id="{{ $info->id }}">
+                                                    data-info-id="{{ $info->id }}" data-media-types="audio,video_file" data-section-name="information importante" title="Modifier l'information">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                                 
@@ -487,116 +473,16 @@
         </div>
     </section>
 
-    <!-- Modals -->
-    @include('admin.medias.info_importantes.modals.add')
-    @include('admin.medias.info_importantes.modals.edit')
-    @include('admin.medias.info_importantes.modals.view')
 @endsection
 
 @push('scripts')
     <script>
         $(document).ready(function() {
-            // ===== GESTION DU FORMULAIRE D'AJOUT =====
-            $('input[name="media_type"]', '#addInfoForm').change(function() {
-                const selectedType = $(this).val();
-                $('#addAudioFileSection, #addVideoFileSection').addClass('d-none');
-                $('#addAudioFile, #addVideoFile').removeAttr('required');
-
-                if (selectedType === 'audio') {
-                    $('#addAudioFileSection').removeClass('d-none');
-                    $('#addAudioFile').attr('required', 'required');
-                } else if (selectedType === 'video') {
-                    $('#addVideoFileSection').removeClass('d-none');
-                    $('#addVideoFile').attr('required', 'required');
-                }
-            });
-
-            $('#addAudioFile, #addVideoFile, #addInfoThumbnail').on('change', function() {
-                let fileName = $(this).val().split('\\').pop();
-                $(this).next('.custom-file-label').addClass("selected").html(fileName);
-            });
-
-            $('#addInfoModal').on('hidden.bs.modal', function() {
-                $('#addInfoForm')[0].reset();
-                $('#addAudioFile, #addVideoFile').next('.custom-file-label').html('Choisir un fichier');
-                $('#addInfoThumbnail').next('.custom-file-label').html('Choisir une image');
-                $('#addMediaTypeAudio').prop('checked', true).trigger('change');
-            });
-
-            // ===== GESTION DU FORMULAIRE D'ÉDITION =====
-            $('input[name="media_type"]', '#editInfoForm').change(function() {
-                const selectedType = $(this).val();
-                $('#editAudioFileSection, #editVideoFileSection').addClass('d-none');
-                $('#editAudioFile, #editVideoFile').removeAttr('required');
-
-                if (selectedType === 'audio') {
-                    $('#editAudioFileSection').removeClass('d-none');
-                } else if (selectedType === 'video') {
-                    $('#editVideoFileSection').removeClass('d-none');
-                }
-            });
-
-            $('#editAudioFile, #editVideoFile, #editInfoThumbnail').on('change', function() {
-                let fileName = $(this).val().split('\\').pop();
-                $(this).next('.custom-file-label').addClass("selected").html(fileName ||
-                    'Choisir un nouveau fichier');
-            });
-
-            $(document).on('click', '.edit-info-btn', function() {
-                const infoId = $(this).data('info-id');
-                $.ajax({
-                    url: "{{ route('info_importantes.edit', ':id') }}".replace(':id', infoId),
-                    method: 'GET',
-                    success: function(data) {
-                        $('#editInfoNom').val(data.nom);
-                        $('#editInfoDescription').val(data.description);
-                        $('#editInfoIsActive').prop('checked', data.is_active);
-                        $('#editInfoForm').attr('action',
-                            "{{ route('info_importantes.update', ':id') }}".replace(':id',
-                                infoId));
-
-                        if (data.media) {
-                            let mediaType = data.media.type;
-                            if (mediaType === 'audio') {
-                                $('#editMediaTypeAudio').prop('checked', true).trigger(
-                                'change');
-                                $('#editCurrentAudioName').text(data.media.url_fichier.split(
-                                    '/').pop());
-                                $('#editCurrentAudio').show();
-                                $('#editCurrentVideo').hide();
-                            } else if (mediaType === 'video') {
-                                $('#editMediaTypeVideo').prop('checked', true).trigger(
-                                    'change');
-                                $('#editCurrentVideoName').text(data.media.url_fichier.split(
-                                    '/').pop());
-                                $('#editCurrentVideo').show();
-                                $('#editCurrentAudio').hide();
-                                
-                                // Gestion de l'image de couverture
-                                if (data.media.thumbnail) {
-                                    const thumbnailName = data.media.thumbnail.split('/').pop();
-                                    $('#editCurrentThumbnailName').text(thumbnailName);
-                                    $('#editCurrentThumbnailPreview').attr('src', '/storage/' + data.media.thumbnail).show();
-                                    $('#editCurrentThumbnail').show();
-                                } else {
-                                    $('#editCurrentThumbnail').hide();
-                                }
-                            }
-                        }
-                        $('#editInfoModal').modal('show');
-                    },
-                    error: function() {
-                        alert('Erreur lors du chargement des données de l\'information');
-                    }
-                });
-            });
-
             // ===== TOGGLE STATUS =====
             $(document).on('click', '.toggle-status-btn', function() {
                 const infoId = $(this).data('info-id');
                 const currentStatus = $(this).data('status');
                 const newStatus = currentStatus ? 0 : 1;
-                const btn = $(this);
 
                 $.ajax({
                     url: "{{ route('info_importantes.toggle_status', ':id') }}".replace(':id', infoId),
@@ -606,7 +492,7 @@
                         is_active: newStatus
                     },
                     success: function(response) {
-                        window.location.reload(); // Recharger la page pour refléter les changements
+                        window.location.reload();
                     },
                     error: function() {
                         alert('Erreur lors de la mise à jour du statut');
@@ -614,92 +500,21 @@
                 });
             });
 
-            // ===== VISUALISATION DES INFORMATIONS =====
+            // ===== ÉDITION DES INFORMATIONS IMPORTANTES =====
+            $(document).on('click', '.edit-info-btn', function() {
+                handleEditMedia(
+                    $(this)
+                    , "{{ route('info_importantes.edit', ':id') }}"
+                    , "{{ route('info_importantes.update', ':id') }}"
+                    , '#editModal'
+                );
+            });
+
+            // ===== VISUALISATION DES INFORMATIONS IMPORTANTES =====
             $(document).on('click', '.view-info-btn, .info-thumbnail', function() {
-                const infoUrl = $(this).data('info-url');
-                const infoName = $(this).data('info-name');
-                const mediaType = $(this).data('media-type');
-                const infoDescription = $(this).closest('.info-card').find('.card-text').attr(
-                    'title') || '';
-
-                // Masquer tous les lecteurs et réinitialiser
-                $('#audioPlayerContainer, #videoPlayerContainer').addClass('d-none');
-                $('#modalAudioPlayer').attr('src', '').get(0).load();
-                $('#modalVideoPlayer').attr('src', '').get(0).load();
-
-                if (mediaType === 'audio') {
-                    $('#modalAudioPlayer').attr('src', infoUrl).get(0).load();
-                    $('#audioPlayerContainer').removeClass('d-none');
-                    $('#mediaTypeBadge').text('Audio').removeClass('d-none');
-                } else if (mediaType === 'video') {
-                    // Utiliser l'URL de la vidéo pour la lecture
-                    const videoUrl = $(this).data('video-url') || infoUrl;
-                    $('#modalVideoPlayer').attr('src', videoUrl).get(0).load();
-                    $('#videoPlayerContainer').removeClass('d-none');
-                    $('#mediaTypeBadge').text('Vidéo').removeClass('d-none');
-                }
-
-                $('#infoTitle').text(infoName);
-                $('#infoDescription').text(infoDescription);
-                $('#infoViewModal').modal('show');
+                handleMediaView($(this), "{{ route('info_importantes.voir', ':id') }}");
             });
 
-            // ===== NETTOYAGE DU MODAL =====
-            $('#infoViewModal').on('hidden.bs.modal', function() {
-                // Arrêter tous les médias
-                $('#modalAudioPlayer').get(0).pause();
-                $('#modalVideoPlayer').get(0).pause();
-
-                // Réinitialiser les sources
-                $('#modalAudioPlayer').attr('src', '');
-                $('#modalVideoPlayer').attr('src', '');
-
-                // Masquer tous les lecteurs
-                $('#audioPlayerContainer, #videoPlayerContainer').addClass('d-none');
-
-                // Vider les informations
-                $('#infoTitle, #infoDescription, #mediaTypeBadge').text('');
-            });
-
-            // ===== TÉLÉCHARGEMENT =====
-            $('#downloadInfoBtn').on('click', function() {
-                const mediaType = $('#mediaTypeBadge').text();
-                let downloadUrl = '';
-
-                if (mediaType === 'Audio') {
-                    downloadUrl = $('#modalAudioPlayer').attr('src');
-                } else if (mediaType === 'Vidéo') {
-                    downloadUrl = $('#modalVideoPlayer').attr('src');
-                }
-
-                if (downloadUrl) {
-                    const link = document.createElement('a');
-                    link.href = downloadUrl;
-                    link.download = $('#infoTitle').text() +
-                        (mediaType === 'Audio' ? '.mp3' : '.mp4');
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                } else {
-                    alert('Téléchargement non disponible');
-                }
-            });
-
-            // ===== LECTURE AUTOMATIQUE =====
-            $('#infoViewModal').on('shown.bs.modal', function() {
-                const audioPlayer = $('#modalAudioPlayer').get(0);
-                const videoPlayer = $('#modalVideoPlayer').get(0);
-
-                if (audioPlayer && !$('#audioPlayerContainer').hasClass('d-none')) {
-                    audioPlayer.play().catch(function(error) {
-                        console.log('Lecture audio automatique bloquée:', error);
-                    });
-                } else if (videoPlayer && !$('#videoPlayerContainer').hasClass('d-none')) {
-                    videoPlayer.play().catch(function(error) {
-                        console.log('Lecture vidéo automatique bloquée:', error);
-                    });
-                }
-            });
         });
     </script>
 @endpush

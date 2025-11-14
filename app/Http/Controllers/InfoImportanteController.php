@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Media;
 use App\Models\InfoImportante;
+use App\Services\MediaService;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,12 @@ use ProtoneMedia\LaravelFFMpeg\Support\FFMpeg;
 
 class InfoImportanteController extends Controller
 {
+    protected $mediaService;
+
+    public function __construct(MediaService $mediaService)
+    {
+        $this->mediaService = $mediaService;
+    }
     public function index(Request $request)
     {
         $query = InfoImportante::with('media')->where('is_deleted', false)->latest();
@@ -29,7 +36,7 @@ class InfoImportanteController extends Controller
             $query->whereHas('media', function ($q) use ($request) {
                 if ($request->type === 'audio') {
                     $q->where('type', 'audio');
-                } elseif ($request->type === 'video') {
+                } elseif ($request->type === 'video_file') {
                     $q->where('type', 'video');
                 }
             });
@@ -45,19 +52,23 @@ class InfoImportanteController extends Controller
         // Préparer les données pour la vue
         $infoData = $infoImportantes->map(function ($info) {
             $isAudio = $info->media && $info->media->type === 'audio';
-            $isVideo = $info->media && $info->media->type === 'video';
+            $isVideoFile = $info->media && $info->media->type === 'video';
 
             $thumbnailUrl = null;
+            $hasThumbnail = false;
 
-            if ($isVideo) {
-                // Pour les vidéos, utiliser l'image de couverture si disponible
-                if ($info->media->thumbnail) {
+            if ($isVideoFile) {
+                // Pour les vidéos fichiers, utiliser l'image de couverture si disponible
+                if ($info->media && $info->media->thumbnail) {
                     $thumbnailUrl = asset('storage/' . $info->media->thumbnail);
-                } else {
-                    $thumbnailUrl = asset('storage/' . $info->media->url_fichier);
+                    $hasThumbnail = true;
                 }
             } elseif ($isAudio) {
-                $thumbnailUrl = asset('storage/' . $info->media->url_fichier);
+                // Pour les audios, utiliser l'image de couverture si disponible
+                if ($info->media && $info->media->thumbnail) {
+                    $thumbnailUrl = asset('storage/' . $info->media->thumbnail);
+                    $hasThumbnail = true;
+                }
             }
 
             return (object)[
@@ -66,10 +77,10 @@ class InfoImportanteController extends Controller
                 'description' => $info->description,
                 'is_active' => $info->is_active,
                 'created_at' => $info->created_at,
-                'media_type' => $isAudio ? 'audio' : 'video',
+                'media_type' => $isAudio ? 'audio' : 'video_file',
                 'thumbnail_url' => $thumbnailUrl,
-                'video_url' => $isVideo ? asset('storage/' . $info->media->url_fichier) : $thumbnailUrl,
-                'has_thumbnail' => $isVideo && $info->media->thumbnail ? true : false,
+                'media_url' => $info->media ? ($isVideoFile ? asset('storage/' . $info->media->url_fichier) : ($isAudio ? asset('storage/' . $info->media->url_fichier) : null)) : null,
+                'has_thumbnail' => $hasThumbnail,
             ];
         });
 
@@ -81,95 +92,39 @@ class InfoImportanteController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'nom' => 'required|string|max:255',
-            'description' => 'required|string',
-            'media_type' => 'required|in:audio,video',
-            'is_active' => 'boolean',
-            'image_couverture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
-        try {
-            DB::beginTransaction();
+        $result = $this->mediaService->createMedia($request);
 
-            if ($request->media_type === 'audio') {
-                $request->validate([
-                    'fichier_audio' => 'required|file|mimes:mp3,wav,aac,ogg,flac|max:512000',
-                ]);
+        if (is_array($result) && isset($result['success']) && $result['success'] === false) {
+            $errors = $result['errors'];
 
-                $file = $request->file('fichier_audio');
-                $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                $uniqueName = $filename . '_' . now()->format('Ymd_His') . '.mp3';
-
-                // Stockage direct sans optimisation
-                $filePath = $file->storeAs('info_importantes/audios', $uniqueName, 'public');
-                $type = 'audio';
-            } elseif ($request->media_type === 'video') {
-                $request->validate([
-                    'fichier_video' => 'required|file|mimes:mp4,avi,mov,wmv,flv,mkv,webm|max:1024000',
-                    'image_couverture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-                ]);
-
-                $file = $request->file('fichier_video');
-                $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                $uniqueName = $filename . '_' . now()->format('Ymd_His') . '.mp4';
-
-                // Stockage temporaire
-                $tempPath = $file->storeAs('temp/videos', "tmp_{$uniqueName}");
-
-                // Traitement avec FFmpeg
-                FFMpeg::fromDisk('local')
-                    ->open($tempPath)
-                    ->export()
-                    ->toDisk('public')
-                    ->inFormat(new \FFMpeg\Format\Video\X264('aac', 'libx264'))
-                    ->resize(1280, 720)
-                    ->save('info_importantes/videos/' . $uniqueName);
-
-                // Nettoyage du fichier temporaire
-                Storage::disk('local')->delete($tempPath);
-
-                $filePath = 'info_importantes/videos/' . $uniqueName;
-                $type = 'video';
+            if ($errors instanceof \Illuminate\Support\MessageBag) {
+                foreach ($errors->all() as $error) {
+                    notify()->error($error);
+                }
+            } elseif (is_array($errors)) {
+                foreach ($errors as $error) {
+                    notify()->error($error);
+                }
+            } elseif (is_string($errors)) {
+                notify()->error($errors);
             }
 
-            // Traitement de l'image de couverture pour les vidéos
-            $thumbnailPath = null;
-            if ($request->media_type === 'video' && $request->hasFile('image_couverture')) {
-                $thumbnailFile = $request->file('image_couverture');
-                $thumbnailName = pathinfo($thumbnailFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $thumbnailUniqueName = $thumbnailName . '_thumb_' . now()->format('Ymd_His') . '.' . $thumbnailFile->getClientOriginalExtension();
-                $thumbnailPath = $thumbnailFile->storeAs('thumbnails', $thumbnailUniqueName, 'public');
-            }
-
-            // Créer l'enregistrement média
-            $media = Media::create([
-                'url_fichier' => $filePath,
-                'thumbnail' => $thumbnailPath,
-                'type' => $type,
-                'insert_by' => auth()->id(),
-                'update_by' => auth()->id(),
-            ]);
-
-            // Créer l'information importante
-            InfoImportante::create([
-                'id_media' => $media->id,
-                'nom' => $request->nom,
-                'description' => $request->description,
-                'is_active' => $request->has('is_active') ? true : false,
-                'insert_by' => auth()->id(),
-                'update_by' => auth()->id(),
-            ]);
-
-            DB::commit();
-            notify()->success('Succès', 'Information importante ajoutée avec succès.');
-            return redirect()->route('info_importantes.index');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Erreur lors de la création de l\'information importante: ' . $e->getMessage());
-            Alert::error('Erreur', 'Impossible de créer l\'information importante: ' . $e->getMessage());
             return back()->withInput();
         }
+        $media = $result;
+
+        // === CRÉATION DE L'INFORMATION IMPORTANTE ===
+        InfoImportante::create([
+            'id_media' => $media->id,
+            'nom' => $request->nom,
+            'description' => $request->description,
+            'is_active' => $request->has('is_active') ? true : false,
+            'insert_by' => auth()->id(),
+            'update_by' => auth()->id(),
+        ]);
+
+        notify()->success('Succès', 'Information importante ajoutée avec succès.');
+        return redirect()->route('info_importantes.index');
     }
 
     public function edit(InfoImportante $infoImportante)
@@ -185,120 +140,37 @@ class InfoImportanteController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'nom' => 'required|string|max:255',
-            'description' => 'required|string',
-            'media_type' => 'required|in:audio,video',
-            'image_couverture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
+        $infoImportante = InfoImportante::findOrFail($id);
+        $media = $infoImportante->media;
 
-        try {
-            DB::beginTransaction();
+        $result = $this->mediaService->updateMedia($request, $media);
 
-            // Récupérer l'information importante existante
-            $infoImportante = InfoImportante::findOrFail($id);
-            $media = $infoImportante->media;
+        if (is_array($result) && isset($result['success']) && $result['success'] === false) {
+            $errors = $result['errors'];
 
-            if (!$media) {
-                throw new \Exception('Média introuvable pour cette information importante');
+            if ($errors instanceof \Illuminate\Support\MessageBag) {
+                foreach ($errors->all() as $error) {
+                    notify()->error($error);
+                }
+            } elseif (is_array($errors)) {
+                foreach ($errors as $error) {
+                    notify()->error($error);
+                }
+            } elseif (is_string($errors)) {
+                notify()->error($errors);
             }
 
-            $filePath = $media->url_fichier; // par défaut, garder l'ancien fichier
-            $thumbnailPath = $media->thumbnail; // par défaut, garder l'ancienne image
-            $type = $media->type;
-
-            if ($request->media_type === 'audio') {
-                $request->validate([
-                    'fichier_audio' => 'nullable|file|mimes:mp3,wav,aac,ogg,flac|max:512000',
-                ]);
-
-                if ($request->hasFile('fichier_audio')) {
-                    $file = $request->file('fichier_audio');
-                    $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                    $uniqueName = $filename . '_' . now()->format('Ymd_His') . '.mp3';
-
-                    // Supprimer ancien fichier audio
-                    if ($media->type === 'audio' && Storage::disk('public')->exists($media->url_fichier)) {
-                        Storage::disk('public')->delete($media->url_fichier);
-                    }
-
-                    // Stockage
-                    $filePath = $file->storeAs('info_importantes/audios', $uniqueName, 'public');
-                    $type = 'audio';
-                }
-
-            } elseif ($request->media_type === 'video') {
-                $request->validate([
-                    'fichier_video' => 'nullable|file|mimes:mp4,avi,mov,wmv,flv,mkv,webm|max:1024000',
-                ]);
-
-                if ($request->hasFile('fichier_video')) {
-                    $file = $request->file('fichier_video');
-                    $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                    $uniqueName = $filename . '_' . now()->format('Ymd_His') . '.mp4';
-
-                    // Supprimer ancien fichier vidéo
-                    if ($media->type === 'video' && Storage::disk('public')->exists($media->url_fichier)) {
-                        Storage::disk('public')->delete($media->url_fichier);
-                    }
-
-                    // Stockage temporaire
-                    $tempPath = $file->storeAs('temp/videos', "tmp_{$uniqueName}");
-
-                    // Compression et export avec FFmpeg
-                    FFMpeg::fromDisk('local')
-                        ->open($tempPath)
-                        ->export()
-                        ->toDisk('public')
-                        ->inFormat(new \FFMpeg\Format\Video\X264('aac', 'libx264'))
-                        ->resize(1280, 720)
-                        ->save('info_importantes/videos/' . $uniqueName);
-
-                    Storage::disk('local')->delete($tempPath);
-
-                    $filePath = 'info_importantes/videos/' . $uniqueName;
-                    $type = 'video';
-                }
-
-                // Traitement de l'image de couverture pour les vidéos
-                if ($request->media_type === 'video' && $request->hasFile('image_couverture')) {
-                    // Supprimer l'ancienne image de couverture
-                    if ($media->thumbnail && Storage::disk('public')->exists($media->thumbnail)) {
-                        Storage::disk('public')->delete($media->thumbnail);
-                    }
-
-                    $thumbnailFile = $request->file('image_couverture');
-                    $thumbnailName = pathinfo($thumbnailFile->getClientOriginalName(), PATHINFO_FILENAME);
-                    $thumbnailUniqueName = $thumbnailName . '_thumb_' . now()->format('Ymd_His') . '.' . $thumbnailFile->getClientOriginalExtension();
-                    $thumbnailPath = $thumbnailFile->storeAs('thumbnails', $thumbnailUniqueName, 'public');
-                }
-            }
-
-            // Mise à jour du média
-            $media->update([
-                'url_fichier' => $filePath,
-                'thumbnail' => $thumbnailPath,
-                'type' => $type,
-                'update_by' => auth()->id(),
-            ]);
-
-            // Mise à jour de l'information importante
-            $infoImportante->update([
-                'nom' => $request->nom,
-                'description' => $request->description,
-                'update_by' => auth()->id(),
-            ]);
-
-            DB::commit();
-            notify()->success('Succès', 'Information importante mise à jour avec succès.');
-            return redirect()->route('info_importantes.index');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Erreur lors de la mise à jour de l\'information importante: ' . $e->getMessage());
-            Alert::error('Erreur', 'Impossible de mettre à jour l\'information importante: ' . $e->getMessage());
             return back()->withInput();
         }
+
+        $infoImportante->update([
+            'nom' => $request->nom,
+            'description' => $request->description,
+            'update_by' => auth()->id(),
+        ]);
+
+        notify()->success('Succès', 'Information importante mise à jour avec succès.');
+        return redirect()->route('info_importantes.index');
     }
 
     public function toggleStatus(Request $request, $id)
@@ -346,6 +218,42 @@ class InfoImportanteController extends Controller
             Log::error('Erreur lors de la suppression: ' . $e->getMessage());
             return redirect()->back()
                 ->with('error', 'Erreur lors de la suppression: ' . $e->getMessage());
+        }
+    }
+
+    public function voirInfoImportante($id)
+    {
+        try {
+            $infoImportante = InfoImportante::with('media')->findOrFail($id);
+            $media = $infoImportante->media;
+
+            if ($media->status !== 'ready') {
+                return response()->json([
+                    'status' => 'processing',
+                    'message' => 'Le média est en cours de traitement. Veuillez réessayer plus tard.'
+                ], 200);
+            }
+
+            $url = $media->url_fichier;
+
+            return response()->json([
+                'status' => 'ready',
+                'data' => [
+                    'id' => $infoImportante->id,
+                    'nom' => $infoImportante->nom,
+                    'description' => $infoImportante->description,
+                    'media' => [
+                        'url' => asset('storage/' . $url),
+                        'thumbnail' => $media->thumbnail ? asset('storage/' . $media->thumbnail) : null,
+                        'type' => $media->type,
+                    ],
+                ],
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Erreur lors du chargement de l\'information importante : ' . $e->getMessage(),
+            ], 500);
         }
     }
 

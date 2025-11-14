@@ -202,8 +202,8 @@ class EnseignementController extends Controller
     public function publish(Request $request, $id)
     {
         $enseignement = Enseignement::findOrFail($id);
-        if (!$enseignement->media || !in_array($enseignement->media->type, ['video', 'link'])) {
-            Alert::error('Erreur', 'Seules les vidéos peuvent être publiées/dépubliées.');
+        if (!$enseignement->media) {
+            Alert::error('Erreur', 'Aucun média associé.');
             return redirect()->back();
         }
         try {
@@ -211,7 +211,7 @@ class EnseignementController extends Controller
                 'is_published' => true,
                 'update_by' => auth()->id(),
             ]);
-            notify()->success('Succès', 'Vidéo d\'enseignement publiée avec succès.');
+            notify()->success('Succès', 'Enseignement publié avec succès.');
             if ($request->ajax()) {
                 return response()->json(['success' => true]);
             }
@@ -229,8 +229,8 @@ class EnseignementController extends Controller
     public function unpublish(Request $request, $id)
     {
         $enseignement = Enseignement::findOrFail($id);
-        if (!$enseignement->media || !in_array($enseignement->media->type, ['video', 'link'])) {
-            Alert::error('Erreur', 'Seules les vidéos peuvent être publiées/dépubliées.');
+        if (!$enseignement->media) {
+            Alert::error('Erreur', 'Aucun média associé.');
             return redirect()->back();
         }
         try {
@@ -238,7 +238,7 @@ class EnseignementController extends Controller
                 'is_published' => false,
                 'update_by' => auth()->id(),
             ]);
-            notify()->success('Succès', 'Vidéo d\'enseignement dépubliée avec succès.');
+            notify()->success('Succès', 'Enseignement dépublié avec succès.');
             if ($request->ajax()) {
                 return response()->json(['success' => true]);
             }

@@ -1,10 +1,13 @@
 function handleMediaView($element, routeTemplate) {
     const id = $element.data('temoignage-id') || $element.data('priere-id') || 
                 $element.data('prophetie-id') || $element.data('podcast-id') ||
-                $element.data('home-charity-id') ||  $element.data('home-charity-id') ||
-                $element.data('media-id');
-                ; 
+                $element.data('home-charity-id') || $element.data('video-id') ||
+                $element.data('programme-id') || $element.data('info-id') ||
+                $element.data('media-id') || $element.data('enseignement-id'); 
 
+    // Mettre à jour le titre de la modale avec le nom de la section
+    const sectionName = $element.data('section-name') || "témoignage";
+    $('#ViewModalLabel').text(sectionName.charAt(0).toUpperCase() + sectionName.slice(1));
 
     const url = routeTemplate.replace(':id', id);
 
@@ -27,10 +30,10 @@ function handleMediaView($element, routeTemplate) {
                 return;
             }
 
-            const data = response.temoignage || response.priere || response.prophetie || response.podcast || response.data ;
+            const data = response.temoignage || response.priere || response.prophetie || response.podcast || response.data || response.video;
             const media = data.media;
             
-            // Affichage du contenu
+            // Utiliser le modal global pour toutes les sections
             $('#ViewModalLabel').text(data.nom);
             $('#Description').text(data.description);
 
@@ -72,7 +75,7 @@ function handleMediaView($element, routeTemplate) {
                 $('#mediaTypeBadge').text('Images').removeClass().addClass('badge badge-pill badge-warning');
             }
 
-            // Afficher le modal
+            // Afficher le modal global
             $('#viewModal').modal('show');
         },
         error: function() {
@@ -82,7 +85,7 @@ function handleMediaView($element, routeTemplate) {
     });
 }
 
-// ===== NETTOYAGE DU MODAL =====
+// ===== NETTOYAGE DU MODAL GLOBAL =====
 $('#viewModal').on('hidden.bs.modal', function() {
     // Arrêter tous les médias
     const audioPlayer = $('#modalAudioPlayer').get(0);
@@ -100,10 +103,10 @@ $('#viewModal').on('hidden.bs.modal', function() {
     $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer, #pdfViewerContainer, #imageCarouselContainer')
         .addClass('d-none');
 
-    // Vider les infos
-    $('#ViewModalLabel').text('Témoignage');
+    // Vider les infos (le titre sera mis à jour dynamiquement lors de l'ouverture)
     $('#Description, #mediaTypeBadge').text('');
 });
+
 
 // ===== LECTURE AUTOMATIQUE =====
 $('#viewModal').on('shown.bs.modal', function() {

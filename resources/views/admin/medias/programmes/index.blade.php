@@ -322,7 +322,8 @@
                     <div class="d-flex justify-content-between align-items-center section-header">
                         <h2 class="section-title">Programmes disponibles</h2>
                         <button type="button" class="btn btn-primary" data-toggle="modal"
-                            data-target="#addProgrammeModal">
+                            data-target="#addstoreModal" data-route="{{ route('programmes.store') }}"
+                            data-media-types="audio,video_file,video_link,pdf,images" data-section-name="programme">
                             <i class="fas fa-plus"></i> Ajouter un programme
                         </button>
                     </div>
@@ -387,13 +388,7 @@
                             <div class="programme-grid-item">
                                 <div class="card programme-card">
                                     <div class="programme-thumbnail-container">
-                                            <div class="programme-thumbnail position-relative"
-                                            data-programme-url="{{ $thumbnail_url }}"
-                                            data-video-url="{{ $programmeData->video_url ?? '' }}"
-                                            data-programme-name="{{ $nom }}"
-                                                data-media-url="{{ $media_url }}" data-media-type="{{ $media_type }}"
-                                            data-has-thumbnail="{{ $programmeData->has_thumbnail ? 'true' : 'false' }}"
-                                            data-images='@json($programmeData->images ?? [])'>
+                                            <div class="programme-thumbnail position-relative" data-programme-id="{{ $id }}" data-section-name="programme">
 
                                             <!-- Afficher l'image de couverture ou icône par défaut -->
                                             @if ($programmeData->has_thumbnail)
@@ -435,14 +430,12 @@
                                                 )}}
                                             </span>
 
-                                            <!-- Badge statut publication (uniquement pour les vidéos) -->
-                                            @if (in_array($media_type, ['video_link', 'video_file']))
-                                                <span
-                                                    class="badge {{ $is_published ? 'badge-success' : 'badge-secondary' }}"
-                                                    style="position: absolute; top: 10px; left: 10px; z-index: 10;">
-                                                    {{ $is_published ? 'Publié' : 'Non publié' }}
-                                                </span>
-                                            @endif
+                                            <!-- Badge statut publication -->
+                                            <span
+                                                class="badge {{ $is_published ? 'badge-success' : 'badge-secondary' }}"
+                                                style="position: absolute; top: 10px; left: 10px; z-index: 10;">
+                                                {{ $is_published ? 'Publié' : 'Non publié' }}
+                                            </span>
                                         </div>
                                     </div>
 
@@ -456,19 +449,13 @@
 
                                             <div class="btn-group">
                                                 <button class="btn btn-sm btn-outline-info view-programme-btn rounded"
-                                                    title="Voir le programme" data-programme-url="{{ $thumbnail_url }}"
-                                                    data-media-url="{{ $media_url }}"
-                                                    data-programme-name="{{ $nom }}"
-                                                    data-title="{{ $nom }}"
-                                                    data-description="{{ $description }}"
-                                                    data-media-type="{{ $media_type }}"
-                                                    data-images='@json($programmeData->images ?? [])'>
+                                                    title="Voir le programme" data-programme-id="{{ $id }}" data-section-name="programme">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                                 <button
                                                     class="btn btn-sm btn-outline-primary edit-programme-btn mx-1 rounded"
                                                     title="Modifier le programme"
-                                                    data-programme-id="{{ $id }}">
+                                                    data-programme-id="{{ $id }}" data-section-name="programme">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
 
@@ -483,17 +470,15 @@
                                                     </button>
                                                 </form>
 
-                                                <!-- Switch Publication (uniquement pour les vidéos) -->
-                                                @if (in_array($media_type, ['video_link', 'video_file']))
-                                                    <button
-                                                        class="btn btn-sm btn-outline-{{ $is_published ? 'success' : 'secondary' }} toggle-publish-btn mx-1 rounded"
-                                                        title="{{ $is_published ? 'Dépublier' : 'Publier' }} la vidéo"
-                                                        data-programme-id="{{ $id }}"
-                                                        data-status="{{ $is_published ? 1 : 0 }}">
-                                                        <i class="fas fa-{{ $is_published ? 'toggle-on' : 'toggle-off' }}"></i>
-                                                        <span class="p-1">{{ $is_published ? 'Publié' : 'Non publié' }}</span>
-                                                    </button>
-                                                @endif
+                                                <!-- Switch Publication -->
+                                                <button
+                                                    class="btn btn-sm btn-outline-{{ $is_published ? 'success' : 'secondary' }} toggle-publish-btn mx-1 rounded"
+                                                    title="{{ $is_published ? 'Dépublier' : 'Publier' }}"
+                                                    data-programme-id="{{ $id }}"
+                                                    data-status="{{ $is_published ? 1 : 0 }}">
+                                                    <i class="fas fa-{{ $is_published ? 'toggle-on' : 'toggle-off' }}"></i>
+                                                    <span class="p-1">{{ $is_published ? 'Publié' : 'Non publié' }}</span>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -520,10 +505,6 @@
         </div>
     </section>
 
-    <!-- Modals -->
-    @include('admin.medias.programmes.modals.add')
-    @include('admin.medias.programmes.modals.edit')
-    @include('admin.medias.programmes.modals.view')
 @endsection
 
 @push('scripts')
@@ -547,387 +528,20 @@
                         alert('Erreur lors du changement de statut de publication');
                     });
             });
-            // Accumulate multiple selections for images[]
-            let addImageFilesDT = null;
-            // ===== GESTION DU FORMULAIRE D'AJOUT =====
-            $('input[name="media_type"]', '#addProgrammeForm').change(function() {
-                const selectedType = $(this).val();
-                $('#addAudioFileSection, #addVideoFileSection, #addVideoLinkSection, #addPdfFileSection, #addImageFileSection')
-                    .addClass('d-none');
-                $('#addAudioFile, #addVideoFile, #addVideoLink, #addPdfFile, #addImageFiles, #addAudioImageFile, #addVideoImageFile, #addPdfImageFile, #addImageCoverFile')
-                    .removeAttr('required');
 
-                if (selectedType === 'audio') {
-                    $('#addAudioFileSection').removeClass('d-none');
-                    $('#addAudioFile, #addAudioImageFile').attr('required', 'required');
-                } else if (selectedType === 'video_file') {
-                    $('#addVideoFileSection').removeClass('d-none');
-                    $('#addVideoFile, #addVideoImageFile').attr('required', 'required');
-                } else if (selectedType === 'video_link') {
-                    $('#addVideoLinkSection').removeClass('d-none');
-                    $('#addVideoLink').attr('required', 'required');
-                } else if (selectedType === 'pdf') {
-                    $('#addPdfFileSection').removeClass('d-none');
-                    $('#addPdfFile, #addPdfImageFile').attr('required', 'required');
-                } else if (selectedType === 'images') {
-                    $('#addImageFileSection').removeClass('d-none');
-                    $('#addImageFiles, #addImageCoverFile').attr('required', 'required');
-                }
-            });
-
-            $('#addAudioFile, #addVideoFile, #addPdfFile, #addImageFiles, #addImageCoverFile, #addAudioImageFile, #addVideoImageFile, #addPdfImageFile')
-                .on('change', function() {
-                    const isMultiple = !!$(this).attr('multiple');
-
-                    // Special handling to ACCUMULATE selections for images[]
-                    if (this.id === 'addImageFiles') {
-                        const newFiles = Array.from(this.files || []);
-                        if (!addImageFilesDT) {
-                            addImageFilesDT = new DataTransfer();
-                        }
-                        newFiles.forEach(function(file) {
-                            addImageFilesDT.items.add(file);
-                        });
-                        this.files = addImageFilesDT.files;
-                    }
-
-                    const files = Array.from(this.files || []);
-                    const names = files.map(f => f.name).filter(Boolean);
-
-                    // Déterminer le libellé par défaut selon l'input
-                    const id = this.id;
-                    const defaultLabel = (function() {
-                        switch (id) {
-                            case 'addImageFiles':
-                                return 'Choisir des images';
-                            case 'addImageCoverFile':
-                                return 'Choisir une image de couverture';
-                            case 'addAudioImageFile':
-                            case 'addVideoImageFile':
-                            case 'addPdfImageFile':
-                                return 'Choisir une image';
-                            case 'addAudioFile':
-                            case 'addVideoFile':
-                            case 'addPdfFile':
-                            default:
-                                return 'Choisir un fichier';
-                        }
-                    })();
-
-                    // Mettre à jour le label
-                    let labelText = defaultLabel;
-                    if (isMultiple) {
-                        if (names.length === 0) {
-                            labelText = defaultLabel;
-                        } else if (names.length === 1) {
-                            labelText = names[0];
-                        } else {
-                            labelText = `${names.length} fichiers sélectionnés`;
-                        }
-                    } else {
-                        labelText = names[0] || defaultLabel;
-                    }
-                    $(this).next('.custom-file-label').addClass('selected').html(labelText);
-
-                    // Afficher la liste détaillée uniquement pour le champ multiple des images (#addImageFiles)
-                    const $customFile = $(this).closest('.custom-file');
-                    let $info = $customFile.next('.file-selected-info');
-                    if (id === 'addImageFiles') {
-                        if ($info.length === 0) {
-                            $info = $('<div class="file-selected-info mt-1 small text-muted"></div>');
-                            $customFile.after($info);
-                        }
-                        if (names.length > 0) {
-                            // Limiter l'affichage à 5 noms et indiquer s'il y en a plus
-                            const maxShow = 5;
-                            const shown = names.slice(0, maxShow);
-                            const extra = names.length - shown.length;
-                            const list = shown.join(', ');
-                            $info.html(extra > 0 ? `Sélection : ${list} et +${extra} autre(s)` :
-                                `Sélection : ${list}`);
-                        } else {
-                            $info.empty();
-                        }
-                    } else {
-                        // Pour les autres inputs, pas de liste détaillée, on supprime si existante
-                        if ($info.length) {
-                            $info.remove();
-                        }
-                    }
-                });
-
-            $('#addProgrammeModal').on('hidden.bs.modal', function() {
-                $('#addProgrammeForm')[0].reset();
-                $('#addAudioFile, #addVideoFile, #addPdfFile')
-                    .next('.custom-file-label').html('Choisir un fichier');
-                $('#addAudioImageFile, #addVideoImageFile, #addPdfImageFile')
-                    .next('.custom-file-label').html('Choisir une image');
-                $('#addImageFiles')
-                    .next('.custom-file-label').html('Choisir des images');
-                $('#addImageCoverFile')
-                    .next('.custom-file-label').html('Choisir une image de couverture');
-                // Nettoyer les infos de sélection détaillées
-                $('.file-selected-info').empty();
-                $('#addMediaTypeAudio').prop('checked', true).trigger('change');
-
-                // Reset accumulated images selection
-                addImageFilesDT = null;
-            });
-
-            // ===== GESTION DU FORMULAIRE D'ÉDITION =====
-            $('input[name="media_type"]', '#editProgrammeForm').change(function() {
-                const selectedType = $(this).val();
-                $('#editAudioFileSection, #editVideoFileSection, #editVideoLinkSection, #editPdfFileSection, #editImageFileSection')
-                    .addClass('d-none');
-                $('#editAudioFile, #editVideoFile, #editVideoLink, #editPdfFile, #editImageFiles, #editImageCoverFile').removeAttr('required');
-
-                if (selectedType === 'audio') {
-                    $('#editAudioFileSection').removeClass('d-none');
-                } else if (selectedType === 'video_file') {
-                    $('#editVideoFileSection').removeClass('d-none');
-                } else if (selectedType === 'video_link') {
-                    $('#editVideoLinkSection').removeClass('d-none');
-                    $('#editVideoLink').attr('required', 'required');
-                } else if (selectedType === 'pdf') {
-                    $('#editPdfFileSection').removeClass('d-none');
-                } else if (selectedType === 'images') {
-                    $('#editImageFileSection').removeClass('d-none');
-                    // Not setting required here - server validation already has 'nullable'
-                }
-            });
-
-            // File input handlers for simple file inputs (single files)
-            $('#editAudioFile, #editVideoFile, #editPdfFile, #editAudioImageFile, #editVideoImageFile, #editPdfImageFile')
-                .on('change', function() {
-                    let fileName = $(this).val().split('\\').pop();
-                    $(this).next('.custom-file-label').addClass("selected").html(fileName ||
-                        'Choisir un nouveau fichier');
-                });
-
-            // Special handler for #editImageFiles (multiple files with accumulation support)
-            $('#editImageFiles').on('change', function() {
-                const fileCount = this.files.length;
-                if (fileCount > 0) {
-                    let fileList = '';
-                    for (let i = 0; i < fileCount; i++) {
-                        fileList += (i > 0 ? ', ' : '') + this.files[i].name;
-                    }
-                    $(this).next('.custom-file-label').addClass("selected").html(
-                        fileCount + ' fichiers sélectionnés: ' + fileList
-                    );
-                } else {
-                    $(this).next('.custom-file-label').removeClass("selected").html('Choisir des images');
-                }
-            });
-
-            // Handler for cover image (single file)
-            $('#editImageCoverFile').on('change', function() {
-                let fileName = $(this).val().split('\\').pop();
-                $(this).next('.custom-file-label').addClass("selected").html(fileName || 'Choisir une image de couverture');
-            });
-
+            // ===== ÉDITION DES PROGRAMMES =====
             $(document).on('click', '.edit-programme-btn', function() {
-                const programmeId = $(this).data('programme-id');
-                $.ajax({
-                    url: "{{ route('programmes.edit', ':id') }}".replace(':id', programmeId),
-                    method: 'GET',
-                    success: function(data) {
-                        $('#editProgrammeNom').val(data.nom);
-                        $('#editProgrammeDescription').val(data.description);
-                        $('#editProgrammeForm').attr('action',
-                            "{{ route('programmes.update', ':id') }}".replace(':id',
-                                programmeId));
-
-                        if (data.media) {
-                            let mediaType = data.media.type;
-                            if (mediaType === 'audio') {
-                                $('#editMediaTypeAudio').prop('checked', true).trigger(
-                                    'change');
-                                $('#editCurrentAudioName').text(data.media.url_fichier.split(
-                                    '/').pop());
-                                $('#editCurrentAudio').show();
-                                $('#editCurrentVideo, #editCurrentLink, #editCurrentPdf')
-                                    .hide();
-                            } else if (mediaType === 'video') {
-                                $('#editMediaTypeVideoFile').prop('checked', true).trigger(
-                                    'change');
-                                $('#editCurrentVideoName').text(data.media.url_fichier.split(
-                                    '/').pop());
-                                $('#editCurrentVideo').show();
-                                $('#editCurrentAudio, #editCurrentLink, #editCurrentPdf')
-                                    .hide();
-
-                                // Gestion de l'image de couverture
-                                if (data.media.thumbnail) {
-                                    const thumbnailName = data.media.thumbnail.split('/').pop();
-                                    $('#editCurrentThumbnailName').text(thumbnailName);
-                                    $('#editCurrentThumbnailPreview').attr('src', '/storage/' +
-                                        data.media.thumbnail).show();
-                                    $('#editCurrentThumbnail').show();
-                                } else {
-                                    $('#editCurrentThumbnail').hide();
-                                }
-                            } else if (mediaType === 'link') {
-                                $('#editMediaTypeVideoLink').prop('checked', true).trigger(
-                                    'change');
-                                $('#editVideoLink').val(data.media.url_fichier);
-                                $('#editCurrentLinkValue').text(data.media.url_fichier);
-                                $('#editViewCurrentLink').attr('href', data.media.url_fichier);
-                                $('#editCurrentLink').show();
-                                $('#editCurrentAudio, #editCurrentVideo, #editCurrentPdf')
-                                    .hide();
-                            } else if (mediaType === 'pdf') {
-                                $('#editMediaTypePdf').prop('checked', true).trigger(
-                                    'change');
-                                $('#editCurrentPdfName').text(data.media.url_fichier.split(
-                                    '/').pop());
-                                $('#editCurrentPdf').show();
-                                $('#editCurrentAudio, #editCurrentVideo, #editCurrentLink')
-                                    .hide();
-                            } else if (mediaType === 'images') {
-                                $('#editMediaTypeImages').prop('checked', true).trigger('change');
-                                // Render existing images with checkboxes
-                                const container = $('#existingImagesContainer');
-                                container.empty();
-                                let imgs = [];
-                                try { imgs = JSON.parse(data.media.url_fichier || '[]') || []; } catch (e) { imgs = []; }
-                                imgs.forEach(function(path) {
-                                    const url = '/storage/' + path;
-                                    const id = 'del_' + btoa(path).replace(/[^a-zA-Z0-9]/g,'');
-                                    const col = $('<div class="col-6 col-md-4 col-lg-3 mb-2"></div>');
-                                    const card = $('<div class="border rounded p-2 h-100"></div>');
-                                    card.append('<img src="'+url+'" class="img-fluid mb-2" style="height:120px;object-fit:cover;width:100%" />');
-                                    const chk = $('<div class="custom-control custom-checkbox">\
-                                        <input type="checkbox" class="custom-control-input" id="'+id+'" name="existing_images_delete[]" value="'+path+'">\
-                                        <label class="custom-control-label" for="'+id+'">Supprimer</label>\
-                                    </div>');
-                                    card.append(chk);
-                                    col.append(card);
-                                    container.append(col);
-                                });
-                            }
-                        }
-                        $('#editProgrammeModal').modal('show');
-                    },
-                    error: function() {
-                        alert('Erreur lors du chargement des données du programme');
-                    }
-                });
-            });
-
-            // Cleanup when modal is closed
-            $('#editProgrammeModal').on('hidden.bs.modal', function () {
-                $('#editImageFiles').val('');
-                $('#editImageCoverFile').val('');
-                $('#editImageFilesLabel').text('Choisir des images');
+                handleEditMedia(
+                    $(this)
+                    , "{{ route('programmes.edit', ':id') }}"
+                    , "{{ route('programmes.update', ':id') }}"
+                    , '#editModal'
+                );
             });
 
             // ===== VISUALISATION DES PROGRAMMES =====
             $(document).on('click', '.view-programme-btn, .programme-thumbnail', function() {
-                const programmeUrl = $(this).data('programme-url');
-                const programmeName = $(this).data('programme-name');
-                const mediaType = $(this).data('media-type');
-                const programmeDescription = $(this).closest('.programme-card').find('.card-text').attr(
-                    'title') || '';
-                // Masquer tous les lecteurs et réinitialiser
-                $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer, #pdfViewerContainer, #imageCarouselContainer')
-                    .addClass(
-                        'd-none');
-                $('#modalAudioPlayer').attr('src', '').get(0).load();
-                $('#modalVideoPlayer').attr('src', '').get(0).load();
-                $('#modalIframePlayer').attr('src', '');
-                $('#modalPdfViewer').attr('src', '');
-                $('#imageCarouselInner').empty();
-
-                // Récupérer l'URL du média réel
-                const mediaUrl = $(this).data('media-url');
-
-                if (mediaType === 'audio') {
-                    if (mediaUrl) {
-                        $('#modalAudioPlayer').attr('src', mediaUrl);
-                        $('#modalAudioPlayer')[0].load();
-                        $('#audioPlayerContainer').removeClass('d-none');
-                        $('#mediaTypeBadge').text('Audio').removeClass('d-none');
-                    } else {
-                        console.log('No audio URL found');
-                    }
-                } else if (mediaType === 'video_link') {
-                    $('#modalIframePlayer').attr('src', programmeUrl);
-                    $('#iframePlayerContainer').removeClass('d-none');
-                    $('#mediaTypeBadge').text('Vidéo en ligne').removeClass('d-none');
-                } else if (mediaType === 'video_file') {
-                    // Utiliser l'URL de la vidéo pour la lecture
-                    const videoUrl = $(this).data('video-url') || mediaUrl;
-                    if (videoUrl) {
-                        $('#modalVideoPlayer').attr('src', videoUrl);
-                        $('#modalVideoPlayer')[0].load();
-                        $('#videoPlayerContainer').removeClass('d-none');
-                        $('#mediaTypeBadge').text('Vidéo locale').removeClass('d-none');
-                    }
-                } else if (mediaType === 'pdf') {
-                    if (mediaUrl) {
-                        // Charger le PDF avec les contrôles natifs du navigateur
-                        $('#modalPdfViewer').attr('src', mediaUrl + '#view=FitH&toolbar=1&navpanes=1');
-                        $('#pdfDownload').attr('href', mediaUrl);
-                        $('#pdfViewerContainer').removeClass('d-none');
-                        $('#mediaTypeBadge').text('PDF').removeClass('d-none');
-                    } else {
-                        console.log('No PDF URL found');
-                    }
-                } else if (mediaType === 'images') {
-                    const images = $(this).data('images') || [];
-                    if (images.length > 0) {
-                        images.forEach(function(url, idx) {
-                            const active = idx === 0 ? 'active' : '';
-                            const item = '<div class="carousel-item ' + active + '">\
-    <img class="d-block w-100" src="' + url + '" alt="Image ' + (idx + 1) + '" style="max-height: 450px; object-fit: contain; background: #000;"/>\
-</div>';
-                            $('#imageCarouselInner').append(item);
-                        });
-                        $('#imageCarouselContainer').removeClass('d-none');
-                        $('#mediaTypeBadge').text('Images').removeClass('d-none');
-                    }
-                }
-                $('#programmeTitle').text(programmeName);
-                $('#programmeDescription').text(programmeDescription);
-                $('#programmeViewModal').modal('show');
-            });
-
-            // ===== NETTOYAGE DU MODAL =====
-            $('#programmeViewModal').on('hidden.bs.modal', function() {
-                // Arrêter tous les médias
-                $('#modalAudioPlayer').get(0).pause();
-                $('#modalVideoPlayer').get(0).pause();
-
-                // Réinitialiser les sources
-                $('#modalAudioPlayer').attr('src', '');
-                $('#modalVideoPlayer').attr('src', '');
-                $('#modalIframePlayer').attr('src', '');
-                $('#modalPdfViewer').attr('src', '');
-
-                // Masquer tous les lecteurs
-                $('#audioPlayerContainer, #videoPlayerContainer, #iframePlayerContainer, #pdfViewerContainer, #imageCarouselContainer')
-                    .addClass(
-                        'd-none');
-
-                // Vider les informations
-                $('#programmeTitle, #programmeDescription, #mediaTypeBadge').text('');
-            });
-
-            // ===== LECTURE AUTOMATIQUE =====
-            $('#programmeViewModal').on('shown.bs.modal', function() {
-                const audioPlayer = $('#modalAudioPlayer').get(0);
-                const videoPlayer = $('#modalVideoPlayer').get(0);
-
-                if (audioPlayer && !$('#audioPlayerContainer').hasClass('d-none')) {
-                    audioPlayer.play().catch(function(error) {
-                        console.log('Lecture audio automatique bloquée:', error);
-                    });
-                } else if (videoPlayer && !$('#videoPlayerContainer').hasClass('d-none')) {
-                    videoPlayer.play().catch(function(error) {
-                        console.log('Lecture vidéo automatique bloquée:', error);
-                    });
-                }
+                handleMediaView($(this), "{{ route('programmes.voir', ':id') }}");
             });
         });
     </script>

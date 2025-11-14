@@ -209,9 +209,8 @@ class ProphetieController extends Controller
     {
         $prophetie = Prophetie::findOrFail($id);
 
-        // Vérifier que c'est une vidéo
-        if (!$prophetie->media || !in_array($prophetie->media->type, ['video', 'link'])) {
-            Alert::error('Erreur', 'Seules les vidéos peuvent être publiées/dépubliées.');
+        if (!$prophetie->media) {
+            Alert::error('Erreur', 'Aucun média associé.');
             return redirect()->back();
         }
 
@@ -221,7 +220,7 @@ class ProphetieController extends Controller
                 'update_by' => auth()->id(),
             ]);
 
-            notify()->success('Succès', 'Prophétie vidéo publiée avec succès.');
+            notify()->success('Succès', 'Prophétie publiée avec succès.');
             if ($request->ajax()) {
                 return response()->json(['success' => true]);
             }
@@ -240,9 +239,8 @@ class ProphetieController extends Controller
     {
         $prophetie = Prophetie::findOrFail($id);
 
-        // Vérifier que c'est une vidéo
-        if (!$prophetie->media || !in_array($prophetie->media->type, ['video', 'link'])) {
-            Alert::error('Erreur', 'Seules les vidéos peuvent être publiées/dépubliées.');
+        if (!$prophetie->media) {
+            Alert::error('Erreur', 'Aucun média associé.');
             return redirect()->back();
         }
 
@@ -252,7 +250,7 @@ class ProphetieController extends Controller
                 'update_by' => auth()->id(),
             ]);
 
-            notify()->success('Succès', 'Prophétie vidéo dépubliée avec succès.');
+            notify()->success('Succès', 'Prophétie dépubliée avec succès.');
             if ($request->ajax()) {
                 return response()->json(['success' => true]);
             }

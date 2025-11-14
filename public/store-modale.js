@@ -9,6 +9,11 @@ $("#addstoreModal").on("show.bs.modal", function (event) {
     if (emissionId) {
         $("#input-emission-id").val(emissionId);
     } 
+    
+    // Mettre à jour le titre de la modale avec le nom de la section
+    const sectionName = button.data("section-name") || "témoignage";
+    modal.find("#addstoreModalLabel").text("Ajouter un " + sectionName);
+    
     // Route dynamique
     const route = button.data("route");
     modal.find("#addstoreForm").attr("action", route);

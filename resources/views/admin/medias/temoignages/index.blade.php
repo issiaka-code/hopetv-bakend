@@ -325,7 +325,7 @@
                     <button type="button" class="btn btn-primary" 
                     data-toggle="modal" 
                     data-target="#addstoreModal" data-route="{{ route('temoignages.store') }}" 
-                    data-media-types="audio,video_link,video_file,images,pdf">
+                    data-media-types="audio,video_link,video_file,images,pdf" data-section-name="témoignage">
 
                         <i class="fas fa-plus"></i> Ajouter un témoignage
                     </button>
@@ -390,7 +390,7 @@
                     <div class="temoignage-grid-item">
                         <div class="card temoignage-card">
                             <div class="temoignage-thumbnail-container">
-                                <div class="temoignage-thumbnail position-relative" data-temoignage-id="{{ $id }}" >
+                                <div class="temoignage-thumbnail position-relative" data-temoignage-id="{{ $id }}" data-section-name="témoignage">
                                     <!-- Afficher l'image de couverture ou icône par défaut -->
                                     @if ($temoignageData->has_thumbnail)
 
@@ -429,12 +429,10 @@
                                                 )}}
                                     </span>
 
-                                    <!-- Badge statut publication (uniquement pour les vidéos) -->
-                                    @if (in_array($media_type, ['video_link', 'video_file']))
+                                    <!-- Badge statut publication -->
                                     <span class="badge {{ $is_published ? 'badge-success' : 'badge-secondary' }}" style="position: absolute; top: 10px; left: 10px; z-index: 10;">
                                         {{ $is_published ? 'Publié' : 'Non publié' }}
                                     </span>
-                                    @endif
                                 </div>
                             </div>
 
@@ -447,10 +445,10 @@
                                     <small class="text-muted mb-1">{{ $created_at->format('d/m/Y') }}</small>
 
                                     <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-info view-temoignage-btn rounded" data-temoignage-id="{{ $id }}" title="Voir le témoignage" data-temoignage-url="{{ $thumbnail_url }}" data-media-url="{{ $media_url }}" data-temoignage-name="{{ $nom }}" data-title="{{ $nom }}" data-description="{{ $description }}" data-media-type="{{ $media_type }}" data-images='@json($temoignageData->images ?? [])'>
+                                        <button class="btn btn-sm btn-outline-info view-temoignage-btn rounded" data-temoignage-id="{{ $id }}" data-section-name="témoignage" title="Voir le témoignage" data-temoignage-url="{{ $thumbnail_url }}" data-media-url="{{ $media_url }}" data-temoignage-name="{{ $nom }}" data-title="{{ $nom }}" data-description="{{ $description }}" data-media-type="{{ $media_type }}" data-images='@json($temoignageData->images ?? [])'>
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-outline-primary edit-temoignage-btn mx-1 rounded" title="Modifier le témoignage" data-temoignage-id="{{ $id }}">
+                                        <button class="btn btn-sm btn-outline-primary edit-temoignage-btn mx-1 rounded" title="Modifier le témoignage" data-temoignage-id="{{ $id }}" data-section-name="témoignage">
                                             <i class="fas fa-edit"></i>
                                         </button>
 
@@ -462,13 +460,11 @@
                                             </button>
                                         </form>
 
-                                        <!-- Switch Publication (uniquement pour les vidéos) -->
-                                        @if (in_array($media_type, ['video_link', 'video_file']))
-                                        <button class="btn btn-sm btn-outline-{{ $is_published ? 'success' : 'secondary' }} toggle-publish-btn mx-1 rounded" title="{{ $is_published ? 'Dépublier' : 'Publier' }} la vidéo" data-temoignage-id="{{ $id }}" data-status="{{ $is_published ? 1 : 0 }}">
+                                        <!-- Switch Publication -->
+                                        <button class="btn btn-sm btn-outline-{{ $is_published ? 'success' : 'secondary' }} toggle-publish-btn mx-1 rounded" title="{{ $is_published ? 'Dépublier' : 'Publier' }}" data-temoignage-id="{{ $id }}" data-status="{{ $is_published ? 1 : 0 }}">
                                             <i class="fas fa-{{ $is_published ? 'toggle-on' : 'toggle-off' }}"></i>
                                             <span class="p-1">{{ $is_published ? 'Publié' : 'Non publié' }}</span>
                                         </button>
-                                        @endif
                                     </div>
                                 </div>
                             </div>

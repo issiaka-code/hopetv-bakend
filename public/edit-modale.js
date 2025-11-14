@@ -89,18 +89,29 @@ function handleEditMedia(
     const entityId =
         button.data("temoignage-id") ||
         button.data("priere-id") ||
-         button.data("prophetie-id") ||
-          button.data("home-charity-id") ||
-        button.data('media-id') ||
-        button.data("podcast-id")
-        ;
-
-    
+        button.data("prophetie-id") ||
+        button.data("home-charity-id") ||
+        button.data("video-id") ||
+        button.data("programme-id") ||
+        button.data("info-id") ||
+        button.data("media-id") ||
+        button.data("podcast-id") ||
+        button.data("enseignement-id");
 
     if (!entityId) {
         console.error("Aucun ID trouvé sur le bouton");
         return;
     }
+
+    // Mettre à jour le titre de la modale avec le nom de la section
+    const sectionName = button.data("section-name") || "témoignage";
+    const modal = $(modalSelector);
+    modal.find("#editModalLabel").text("Modifier le " + sectionName);
+
+    // Types de média à afficher (depuis data-media-types du bouton)
+    const mediaTypes = button.data("media-types")
+        ? button.data("media-types").split(",").map(t => t.trim())
+        : [];
 
     $.ajax({
         url: routeEdit.replace(":id", entityId),
@@ -108,11 +119,14 @@ function handleEditMedia(
         success: function (data) {
             const modal = $(modalSelector);
 
-            // Remplir les champs génériques
-            modal.find("#editNom").val(data.nom);
-            modal.find("#editDescription").val(data.description);
+            // Remplir les champs génériques (chercher les IDs flexibles)
+            const nomField = modal.find("#editNom, #editVideoNom, #editEmissionNom, #editInfoNom, #editProgrammeNom");
+            const descField = modal.find("#editDescription, #editVideoDescription, #editEmissionDescription, #editInfoDescription, #editProgrammeDescription");
+            
+            if (nomField.length) nomField.val(data.nom);
+            if (descField.length) descField.val(data.description);
 
-            // Définir la route d’update
+            // Définir la route d'update
             modal
                 .find("form")
                 .attr("action", routeUpdate.replace(":id", entityId));
@@ -125,6 +139,53 @@ function handleEditMedia(
                 .addClass("d-none");
             modal.find("input[type=radio]").prop("checked", false);
             modal.find(".btn-group .btn").removeClass("active");
+
+            // Filtrer les types de média à afficher
+            if (mediaTypes.length > 0) {
+                // Cacher tous les boutons de type
+                modal.find(".btn-group .btn").addClass("d-none");
+                
+                // Mapping des types vers les IDs des labels
+                const typeToLabelId = {
+                    audio: "#editMediaTypeAudioLabel",
+                    video_file: "#editMediaTypeVideoFileLabel",
+                    video_link: "#editMediaTypeVideoLinkLabel",
+                    pdf: "#editMediaTypePdfLabel",
+                    images: "#editMediaTypeImagesLabel",
+                };
+                
+                // Mapping inverse pour trouver le type depuis le type de média
+                const mediaTypeToEditType = {
+                    audio: "audio",
+                    video: "video_file",
+                    link: "video_link",
+                    pdf: "pdf",
+                    images: "images"
+                };
+                
+                // Afficher le type actuel du média (s'il existe) même s'il n'est pas dans la liste
+                let currentEditType = null;
+                if (data.media && data.media.type) {
+                    currentEditType = mediaTypeToEditType[data.media.type];
+                    if (currentEditType) {
+                        const currentLabelId = typeToLabelId[currentEditType];
+                        if (currentLabelId) {
+                            modal.find(currentLabelId).removeClass("d-none");
+                        }
+                    }
+                }
+                
+                // Afficher les types demandés
+                mediaTypes.forEach((type) => {
+                    const labelId = typeToLabelId[type];
+                    if (labelId) {
+                        modal.find(labelId).removeClass("d-none");
+                    }
+                });
+            } else {
+                // Si aucun type spécifié, afficher tout
+                modal.find(".btn-group .btn").removeClass("d-none");
+            }
 
             if (data.media) {
                 const type = data.media.type;

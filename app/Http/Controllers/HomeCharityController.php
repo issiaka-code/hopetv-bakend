@@ -213,9 +213,8 @@ class HomeCharityController extends Controller
     {
         $homeCharity = HomeCharity::findOrFail($id);
 
-        // Vérifier que c'est une vidéo
-        if (!$homeCharity->media || !in_array($homeCharity->media->type, ['video', 'link'])) {
-            Alert::error('Erreur', 'Seules les vidéos peuvent être publiées/dépubliées.');
+        if (!$homeCharity->media) {
+            Alert::error('Erreur', 'Aucun média associé.');
             return redirect()->back();
         }
 
@@ -225,7 +224,7 @@ class HomeCharityController extends Controller
                 'update_by' => auth()->id(),
             ]);
 
-            notify()->success('Succès', 'Charité vidéo publiée avec succès.');
+            notify()->success('Succès', 'Charité publiée avec succès.');
             if ($request->ajax()) {
                 return response()->json(['success' => true]);
             }
@@ -244,9 +243,8 @@ class HomeCharityController extends Controller
     {
         $homeCharity = HomeCharity::findOrFail($id);
 
-        // Vérifier que c'est une vidéo
-        if (!$homeCharity->media || !in_array($homeCharity->media->type, ['video', 'link'])) {
-            Alert::error('Erreur', 'Seules les vidéos peuvent être publiées/dépubliées.');
+        if (!$homeCharity->media) {
+            Alert::error('Erreur', 'Aucun média associé.');
             return redirect()->back();
         }
 
@@ -256,7 +254,7 @@ class HomeCharityController extends Controller
                 'update_by' => auth()->id(),
             ]);
 
-            notify()->success('Succès', 'Charité vidéo dépubliée avec succès.');
+            notify()->success('Succès', 'Charité dépubliée avec succès.');
             if ($request->ajax()) {
                 return response()->json(['success' => true]);
             }
